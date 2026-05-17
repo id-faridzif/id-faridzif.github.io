@@ -239,67 +239,55 @@
 <footer><p id="footer-text">© 2025 My Portfolio — Hosted free on <a href="https://pages.github.com" target="_blank">GitHub Pages</a></p></footer>
 
 <script>
-// ── CONFIG: read from localStorage (set by admin panel) ──
-function getCfg() {
-  try { return JSON.parse(localStorage.getItem('cv_config')) || {}; } catch(e) { return {}; }
-}
+// ============================================================
+// 🔧 ONE-TIME SETUP: Replace this with your public Bin ID
+// (the same bin you use in admin.html)
+// ============================================================
+const PUBLIC_BIN_ID = "6a097953250b1311c3618612";   // <-- CHANGE THIS
+// ============================================================
 
 async function loadData() {
-  const cfg = getCfg();
-  if (!cfg.binId || !cfg.apiKey) {
+  if (!PUBLIC_BIN_ID || PUBLIC_BIN_ID === "your_bin_id_here") {
     hideLoading();
     document.getElementById('hero-name').textContent = 'Setup Required';
-    document.getElementById('hero-subtitle').textContent = 'Visit /admin.html to connect your JSONBin and start editing your CV.';
+    document.getElementById('hero-subtitle').textContent = 'Please set your PUBLIC_BIN_ID in index.html (see instructions).';
     return;
   }
   try {
-    const data = await fetchFromJsonBin(cfg.binId, cfg.apiKey);
-    if (data) {
-      render(data);
-      localStorage.setItem('cv_cache', JSON.stringify(data));
-    } else {
-      throw new Error('No data');
+    // Public read – no API key needed
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${PUBLIC_BIN_ID}/latest`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    let record = json.record;
+    
+    // Handle chunked data
+    if (record && record.__chunks__ && Array.isArray(record.__chunks__)) {
+      let fullCompressed = '';
+      for (const chunkBinId of record.__chunks__) {
+        const chunkRes = await fetch(`https://api.jsonbin.io/v3/b/${chunkBinId}/latest`);
+        if (!chunkRes.ok) throw new Error(`Failed to fetch chunk ${chunkBinId}`);
+        const chunkJson = await chunkRes.json();
+        fullCompressed += chunkJson.record.chunkData;
+      }
+      const decompressed = LZString.decompressFromUTF16(fullCompressed);
+      record = JSON.parse(decompressed);
+    } else if (record && record.__compressed__) {
+      const decompressed = LZString.decompressFromUTF16(record.data);
+      record = JSON.parse(decompressed);
     }
+    
+    render(record);
+    localStorage.setItem('cv_cache', JSON.stringify(record));
   } catch(e) {
+    console.error(e);
     const cached = localStorage.getItem('cv_cache');
-    if (cached) { render(JSON.parse(cached)); }
-    else {
-      document.getElementById('hero-subtitle').textContent = 'Could not load CV data. Check your JSONBin config in admin.html.';
+    if (cached) {
+      render(JSON.parse(cached));
+    } else {
+      document.getElementById('hero-subtitle').textContent = 'Could not load CV. Please check your bin ID or try again later.';
     }
   }
   hideLoading();
-}
-
-async function fetchFromJsonBin(binId, apiKey) {
-  // First fetch the main bin
-  const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
-    headers: { 'X-Master-Key': apiKey }
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = await res.json();
-  let record = json.record;
-  
-  // Check if it's a chunked payload
-  if (record && record.__chunks__ && Array.isArray(record.__chunks__)) {
-    let fullCompressed = '';
-    for (const chunkBinId of record.__chunks__) {
-      const chunkRes = await fetch(`https://api.jsonbin.io/v3/b/${chunkBinId}/latest`, {
-        headers: { 'X-Master-Key': apiKey }
-      });
-      if (!chunkRes.ok) throw new Error(`Failed to fetch chunk ${chunkBinId}`);
-      const chunkJson = await chunkRes.json();
-      fullCompressed += chunkJson.record.chunkData;
-    }
-    const decompressed = LZString.decompressFromUTF16(fullCompressed);
-    return JSON.parse(decompressed);
-  } else {
-    // Single bin, maybe compressed or plain
-    if (record && record.__compressed__) {
-      const decompressed = LZString.decompressFromUTF16(record.data);
-      return JSON.parse(decompressed);
-    }
-    return record; // plain JSON
-  }
 }
 
 function hideLoading() {
@@ -333,62 +321,64 @@ function render(d) {
   else { cvBtn.style.display = 'none'; }
 
   document.getElementById('stats-container').innerHTML = (d.stats || []).map(s =>
-    `<div class="stat fade-in"><span class="stat-num">${s.num}</span><span class="stat-label">${s.label}</span></div>`
+    `<div class="stat fade-in"><span class="stat-num">${escapeHtml(s.num)}</span><span class="stat-label">${escapeHtml(s.label)}</span></div>`
   ).join('');
 
   document.getElementById('exp-container').innerHTML = (d.experience || []).map(e =>
     `<div class="exp-item fade-in">
-      <div class="exp-meta"><p class="exp-period">${e.period}</p><p class="exp-company">${e.company}</p></div>
+      <div class="exp-meta"><p class="exp-period">${escapeHtml(e.period)}</p><p class="exp-company">${escapeHtml(e.company)}</p></div>
       <div class="exp-content">
-        <h3 class="exp-role">${e.role}</h3>
-        <p class="exp-desc">${e.desc}</p>
-        <div class="exp-tags">${(e.tags||[]).map(t=>`<span class="tag tag-accent">${t}</span>`).join('')}</div>
+        <h3 class="exp-role">${escapeHtml(e.role)}</h3>
+        <p class="exp-desc">${escapeHtml(e.desc)}</p>
+        <div class="exp-tags">${(e.tags||[]).map(t=>`<span class="tag tag-accent">${escapeHtml(t)}</span>`).join('')}</div>
       </div>
     </div>`
   ).join('');
 
   document.getElementById('skills-container').innerHTML = (d.skills || []).map(s =>
     `<div class="skill-card fade-in">
-      <span class="skill-card-icon">${s.icon}</span>
-      <h3 class="skill-card-title">${s.title}</h3>
-      <p class="skill-card-desc">${s.desc}</p>
-      <div class="skill-list">${(s.items||[]).map(i=>`<span class="tag tag-default">${i}</span>`).join('')}</div>
+      <span class="skill-card-icon">${escapeHtml(s.icon)}</span>
+      <h3 class="skill-card-title">${escapeHtml(s.title)}</h3>
+      <p class="skill-card-desc">${escapeHtml(s.desc)}</p>
+      <div class="skill-list">${(s.items||[]).map(i=>`<span class="tag tag-default">${escapeHtml(i)}</span>`).join('')}</div>
     </div>`
   ).join('');
 
   document.getElementById('edu-container').innerHTML = (d.education || []).map(e =>
     `<div class="edu-card fade-in">
-      <h3 class="edu-degree">${e.degree}</h3>
-      <p class="edu-school">${e.school}</p>
-      <p class="edu-period">${e.period}</p>
-      <p class="edu-desc">${e.desc}</p>
+      <h3 class="edu-degree">${escapeHtml(e.degree)}</h3>
+      <p class="edu-school">${escapeHtml(e.school)}</p>
+      <p class="edu-period">${escapeHtml(e.period)}</p>
+      <p class="edu-desc">${escapeHtml(e.desc)}</p>
     </div>`
   ).join('');
 
   document.getElementById('achieve-container').innerHTML = (d.achievements || []).map(a =>
     `<div class="achieve-card fade-in">
-      <p class="achieve-year">${a.year}</p>
-      <h3 class="achieve-title">${a.title}</h3>
-      <p class="achieve-org">${a.org}</p>
-      <p class="achieve-desc">${a.desc}</p>
+      <p class="achieve-year">${escapeHtml(a.year)}</p>
+      <h3 class="achieve-title">${escapeHtml(a.title)}</h3>
+      <p class="achieve-org">${escapeHtml(a.org)}</p>
+      <p class="achieve-desc">${escapeHtml(a.desc)}</p>
     </div>`
   ).join('');
 
   const c = d.contact || {};
   let links = '';
-  if (c.email)    links += `<a href="mailto:${c.email}" class="contact-link"><div class="contact-link-icon">✉</div>${c.email}</a>`;
-  if (c.linkedin) links += `<a href="${c.linkedin}" class="contact-link" target="_blank"><div class="contact-link-icon">in</div>${c.linkedin.replace('https://','')}</a>`;
-  if (c.github)   links += `<a href="${c.github}" class="contact-link" target="_blank"><div class="contact-link-icon">gh</div>${c.github.replace('https://','')}</a>`;
-  if (c.phone)    links += `<a href="tel:${c.phone}" class="contact-link"><div class="contact-link-icon">☎</div>${c.phone}</a>`;
+  if (c.email)    links += `<a href="mailto:${escapeHtml(c.email)}" class="contact-link"><div class="contact-link-icon">✉</div>${escapeHtml(c.email)}</a>`;
+  if (c.linkedin) links += `<a href="${escapeHtml(c.linkedin)}" class="contact-link" target="_blank"><div class="contact-link-icon">in</div>${escapeHtml(c.linkedin.replace('https://',''))}</a>`;
+  if (c.github)   links += `<a href="${escapeHtml(c.github)}" class="contact-link" target="_blank"><div class="contact-link-icon">gh</div>${escapeHtml(c.github.replace('https://',''))}</a>`;
+  if (c.phone)    links += `<a href="tel:${escapeHtml(c.phone)}" class="contact-link"><div class="contact-link-icon">☎</div>${escapeHtml(c.phone)}</a>`;
   document.getElementById('contact-links-container').innerHTML = links;
 
   const obs = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), { threshold: 0.12 });
   document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
 }
 
+function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
 function sendMail() {
-  const cfg = getCfg();
-  const to = (cfg.contactEmail) || 'your@email.com';
+  // Optional: you can hardcode your email here or read from config
+  const to = "your@email.com";
   const name = document.getElementById('fname').value.trim();
   const email = document.getElementById('femail').value.trim();
   const msg = document.getElementById('fmsg').value.trim();
