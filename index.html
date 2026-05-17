@@ -238,10 +238,7 @@
 <footer><p id="footer-text">© 2025 My Portfolio — Hosted free on <a href="https://pages.github.com" target="_blank">GitHub Pages</a></p></footer>
 
 <script>
-// ── CONFIG: paste your JSONBin details here after setup ──────
-// These are set by admin.html and read from localStorage as a fallback config store
-// The actual CV data always comes from JSONBin
-
+// ── CONFIG: read from localStorage (set by admin panel) ──
 function getCfg() {
   try { return JSON.parse(localStorage.getItem('cv_config')) || {}; } catch(e) { return {}; }
 }
@@ -262,8 +259,10 @@ async function loadData() {
     if (!res.ok) throw new Error('Fetch failed');
     const json = await res.json();
     render(json.record);
+    // cache for offline fallback
+    localStorage.setItem('cv_cache', JSON.stringify(json.record));
   } catch(e) {
-    // Fallback to cached data if available
+    // fallback to cached data if available
     const cached = localStorage.getItem('cv_cache');
     if (cached) { render(JSON.parse(cached)); }
     else {

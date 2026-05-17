@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CV Admin — Editor</title>
+<title>CV Admin — Remote CMS with JSONBin</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -16,7 +16,7 @@
 }
 body{font-family:'DM Sans',sans-serif;font-weight:400;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.6}
 
-/* ── LOGIN ── */
+/* LOGIN */
 #login-screen{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
   background:var(--dark);
@@ -44,7 +44,7 @@ body{font-family:'DM Sans',sans-serif;font-weight:400;background:var(--bg);color
 .btn-login:hover{background:var(--accent-d);}
 .login-hint{font-size:0.75rem;color:var(--ink-f);text-align:center;margin-top:1rem;}
 
-/* ── MAIN LAYOUT ── */
+/* MAIN LAYOUT */
 #app{display:none;min-height:100vh;}
 
 header{
@@ -80,7 +80,7 @@ header{
 
 .cms-body{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px);}
 
-/* ── SIDEBAR ── */
+/* SIDEBAR */
 .sidebar{background:#fff;border-right:1px solid var(--border);padding:1.5rem 0;}
 .sidebar-section{
   font-size:0.7rem;font-weight:500;color:var(--ink-f);letter-spacing:0.1em;
@@ -95,13 +95,13 @@ header{
 .sidebar-item.active{background:var(--accent-l);color:var(--accent);border-left-color:var(--accent);font-weight:500;}
 .sidebar-icon{font-size:1rem;width:20px;text-align:center;}
 
-/* ── CONTENT PANELS ── */
+/* PANELS */
 .panel{display:none;padding:2rem;max-width:860px;}
 .panel.active{display:block;}
 .panel-title{font-size:1.25rem;font-weight:500;color:var(--ink);margin-bottom:0.3rem;}
 .panel-sub{font-size:0.85rem;color:var(--ink-m);margin-bottom:2rem;}
 
-/* ── FORM ELEMENTS ── */
+/* FORMS */
 .field{margin-bottom:1.25rem;}
 .field label{display:block;font-size:0.78rem;font-weight:500;color:var(--ink-m);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.4rem;}
 .field input,.field textarea,.field select{
@@ -115,7 +115,7 @@ header{
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
 .field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
 
-/* ── CARDS (repeatable sections) ── */
+/* REPEATABLE CARDS */
 .item-card{
   background:#fff;border:1px solid var(--border);border-radius:6px;
   padding:1.25rem;margin-bottom:1rem;position:relative;
@@ -139,7 +139,7 @@ header{
 }
 .btn-add:hover{background:#c5e3fa;}
 
-/* Tags input */
+/* TAGS INPUT */
 .tags-input-wrap{
   display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;
   border:1px solid var(--border);border-radius:4px;padding:0.4rem 0.6rem;
@@ -153,7 +153,7 @@ header{
 .tag-pill button{background:none;border:none;color:inherit;cursor:pointer;padding:0;font-size:0.9rem;line-height:1;}
 .tags-input{border:none;outline:none;font-family:inherit;font-size:0.85rem;color:var(--ink);flex:1;min-width:80px;padding:0.1rem;}
 
-/* Photo upload */
+/* PHOTO UPLOAD */
 .photo-upload-area{
   border:2px dashed var(--border);border-radius:6px;padding:2rem;text-align:center;
   cursor:pointer;transition:border-color 0.2s;margin-bottom:0.5rem;
@@ -163,24 +163,12 @@ header{
 .photo-upload-txt{font-size:0.85rem;color:var(--ink-m);}
 .photo-upload-txt strong{color:var(--accent);}
 
-/* Password change */
+/* PASSWORD & DANGER ZONE */
 .pwd-box{
   background:var(--accent-l);border:1px solid #b3d7f5;border-radius:6px;
   padding:1.25rem;margin-bottom:1.5rem;
 }
 .pwd-box-title{font-size:0.9rem;font-weight:500;color:var(--accent-d);margin-bottom:0.75rem;}
-
-/* Toast */
-#toast{
-  position:fixed;bottom:2rem;right:2rem;z-index:9999;
-  background:var(--dark);color:#fff;padding:0.75rem 1.25rem;
-  border-radius:6px;font-size:0.85rem;opacity:0;
-  transition:opacity 0.3s;pointer-events:none;
-  display:flex;align-items:center;gap:0.5rem;
-}
-#toast.show{opacity:1;}
-
-/* Reset / danger zone */
 .danger-zone{
   background:var(--danger-l);border:1px solid #fed7d7;border-radius:6px;
   padding:1.25rem;margin-top:2rem;
@@ -192,11 +180,34 @@ header{
   border-radius:4px;font-family:inherit;font-size:0.82rem;font-weight:500;cursor:pointer;
 }
 .btn-danger:hover{background:#c53030;}
+
+/* JSONBin config area */
+.jsonbin-box{
+  background:#f8fafc;border:1px solid var(--border);border-radius:6px;
+  padding:1.25rem;margin-bottom:1.5rem;
+}
+.jsonbin-box-title{font-size:0.9rem;font-weight:600;color:var(--ink);margin-bottom:0.5rem;}
+.jsonbin-hint{font-size:0.75rem;color:var(--ink-f);margin-bottom:1rem;}
+.btn-secondary{
+  background:var(--surface-alt);color:var(--ink);border:1px solid var(--border);
+  padding:0.4rem 0.9rem;border-radius:4px;font-size:0.8rem;cursor:pointer;
+}
+.btn-secondary:hover{background:var(--border);}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:2rem;right:2rem;z-index:9999;
+  background:var(--dark);color:#fff;padding:0.75rem 1.25rem;
+  border-radius:6px;font-size:0.85rem;opacity:0;
+  transition:opacity 0.3s;pointer-events:none;
+  display:flex;align-items:center;gap:0.5rem;
+}
+#toast.show{opacity:1;}
 </style>
 </head>
 <body>
 
-<!-- ── LOGIN ── -->
+<!-- LOGIN SCREEN -->
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">⚙ CV Editor</div>
@@ -210,12 +221,12 @@ header{
   </div>
 </div>
 
-<!-- ── APP ── -->
+<!-- MAIN ADMIN APP -->
 <div id="app">
   <header>
     <div class="header-left">
-      <span class="header-logo">CV Admin</span>
-      <span class="header-badge">Editor</span>
+      <span class="header-logo">CV Admin (JSONBin)</span>
+      <span class="header-badge">Remote CMS</span>
     </div>
     <div class="header-right">
       <a href="index.html" target="_blank" class="btn-preview">↗ Preview Site</a>
@@ -227,62 +238,37 @@ header{
   <div class="cms-body">
     <nav class="sidebar">
       <div class="sidebar-section">Content</div>
-      <div class="sidebar-item active" onclick="showPanel('hero')" id="tab-hero"><span class="sidebar-icon">👤</span> Hero</div>
-      <div class="sidebar-item" onclick="showPanel('stats')" id="tab-stats"><span class="sidebar-icon">📊</span> Stats</div>
-      <div class="sidebar-item" onclick="showPanel('experience')" id="tab-experience"><span class="sidebar-icon">💼</span> Experience</div>
-      <div class="sidebar-item" onclick="showPanel('skills')" id="tab-skills"><span class="sidebar-icon">⚡</span> Skills</div>
-      <div class="sidebar-item" onclick="showPanel('education')" id="tab-education"><span class="sidebar-icon">🎓</span> Education</div>
-      <div class="sidebar-item" onclick="showPanel('achievements')" id="tab-achievements"><span class="sidebar-icon">🏆</span> Achievements</div>
-      <div class="sidebar-item" onclick="showPanel('contact')" id="tab-contact"><span class="sidebar-icon">✉</span> Contact</div>
+      <div class="sidebar-item active" onclick="showPanel('hero')"><span class="sidebar-icon">👤</span> Hero</div>
+      <div class="sidebar-item" onclick="showPanel('stats')"><span class="sidebar-icon">📊</span> Stats</div>
+      <div class="sidebar-item" onclick="showPanel('experience')"><span class="sidebar-icon">💼</span> Experience</div>
+      <div class="sidebar-item" onclick="showPanel('skills')"><span class="sidebar-icon">⚡</span> Skills</div>
+      <div class="sidebar-item" onclick="showPanel('education')"><span class="sidebar-icon">🎓</span> Education</div>
+      <div class="sidebar-item" onclick="showPanel('achievements')"><span class="sidebar-icon">🏆</span> Achievements</div>
+      <div class="sidebar-item" onclick="showPanel('contact')"><span class="sidebar-icon">✉</span> Contact</div>
       <div class="sidebar-section">Settings</div>
-      <div class="sidebar-item" onclick="showPanel('settings')" id="tab-settings"><span class="sidebar-icon">🔒</span> Security</div>
+      <div class="sidebar-item" onclick="showPanel('settings')"><span class="sidebar-icon">🔒</span> Security & JSONBin</div>
     </nav>
 
     <main style="background:var(--bg);padding:1.5rem;overflow-y:auto;">
 
-      <!-- HERO -->
+      <!-- HERO PANEL -->
       <div class="panel active" id="panel-hero">
         <div class="panel-title">Hero Section</div>
         <div class="panel-sub">The first thing visitors see — your name, title, and photo.</div>
-
         <div style="display:grid;grid-template-columns:1fr 220px;gap:2rem;align-items:start;">
           <div>
-            <div class="field">
-              <label>Full Name</label>
-              <input type="text" id="h-name" placeholder="e.g. Faridz Ibrahim">
-            </div>
-            <div class="field">
-              <label>Italic Word in Name <span style="font-weight:300;text-transform:none;">(must be part of full name)</span></label>
-              <input type="text" id="h-italic" placeholder="e.g. Ibrahim — this word becomes italic & blue">
-              <div class="field-hint">Leave blank for no italic effect.</div>
-            </div>
-            <div class="field">
-              <label>Status Tag</label>
-              <input type="text" id="h-tag" placeholder="e.g. Open to opportunities">
-            </div>
-            <div class="field">
-              <label>Subtitle / Tagline</label>
-              <textarea id="h-subtitle" rows="3" placeholder="Short description about yourself..."></textarea>
-            </div>
-            <div class="field">
-              <label>Photo Badge Text</label>
-              <input type="text" id="h-badge" placeholder="e.g. Available for work">
-            </div>
-            <div class="field">
-              <label>CV Download URL <span style="font-weight:300;text-transform:none;">(optional)</span></label>
-              <input type="text" id="h-cv" placeholder="e.g. https://drive.google.com/file/d/.../view">
-              <div class="field-hint">Link to your PDF CV. Leave blank to hide the download button.</div>
-            </div>
+            <div class="field"><label>Full Name</label><input type="text" id="h-name"></div>
+            <div class="field"><label>Italic Word in Name</label><input type="text" id="h-italic" placeholder="e.g. Ibrahim — becomes italic & blue"></div>
+            <div class="field"><label>Status Tag</label><input type="text" id="h-tag"></div>
+            <div class="field"><label>Subtitle / Tagline</label><textarea id="h-subtitle" rows="3"></textarea></div>
+            <div class="field"><label>Photo Badge Text</label><input type="text" id="h-badge"></div>
+            <div class="field"><label>CV Download URL</label><input type="text" id="h-cv" placeholder="https://..."></div>
           </div>
-
           <div>
-            <div class="field">
-              <label>Profile Photo</label>
+            <div class="field"><label>Profile Photo</label>
               <div class="photo-upload-area" onclick="document.getElementById('photo-file').click()">
                 <img id="photo-preview-img" class="photo-preview" style="display:none">
-                <div class="photo-upload-txt">
-                  <strong>Click to upload</strong><br>JPG, PNG, WEBP
-                </div>
+                <div class="photo-upload-txt"><strong>Click to upload</strong><br>JPG, PNG, WEBP</div>
               </div>
               <input type="file" id="photo-file" accept="image/*" style="display:none" onchange="handlePhoto(this)">
               <button class="btn-remove" style="width:100%" onclick="clearPhoto()">Remove Photo</button>
@@ -291,7 +277,7 @@ header{
         </div>
       </div>
 
-      <!-- STATS -->
+      <!-- STATS PANEL -->
       <div class="panel" id="panel-stats">
         <div class="panel-title">Stats Strip</div>
         <div class="panel-sub">The 4 highlight numbers shown on the dark banner.</div>
@@ -299,99 +285,87 @@ header{
         <button class="btn-add" onclick="addStat()">+ Add Stat</button>
       </div>
 
-      <!-- EXPERIENCE -->
+      <!-- EXPERIENCE PANEL -->
       <div class="panel" id="panel-experience">
         <div class="panel-title">Work Experience</div>
-        <div class="panel-sub">List your jobs from most recent to oldest.</div>
         <div id="exp-list"></div>
         <button class="btn-add" onclick="addExp()">+ Add Experience</button>
       </div>
 
-      <!-- SKILLS -->
+      <!-- SKILLS PANEL -->
       <div class="panel" id="panel-skills">
         <div class="panel-title">Skills & Expertise</div>
-        <div class="panel-sub">Each skill category becomes a card. Add items as tags (press Enter or comma).</div>
         <div id="skills-list"></div>
         <button class="btn-add" onclick="addSkill()">+ Add Skill Category</button>
       </div>
 
-      <!-- EDUCATION -->
+      <!-- EDUCATION PANEL -->
       <div class="panel" id="panel-education">
         <div class="panel-title">Education</div>
-        <div class="panel-sub">Degrees, certifications, and courses.</div>
         <div id="edu-list"></div>
         <button class="btn-add" onclick="addEdu()">+ Add Education</button>
       </div>
 
-      <!-- ACHIEVEMENTS -->
+      <!-- ACHIEVEMENTS PANEL -->
       <div class="panel" id="panel-achievements">
         <div class="panel-title">Achievements & Recognition</div>
-        <div class="panel-sub">Awards, publications, notable projects.</div>
         <div id="achieve-list"></div>
         <button class="btn-add" onclick="addAchieve()">+ Add Achievement</button>
       </div>
 
-      <!-- CONTACT -->
+      <!-- CONTACT PANEL -->
       <div class="panel" id="panel-contact">
         <div class="panel-title">Contact Info</div>
-        <div class="panel-sub">Your contact details and contact section blurb.</div>
-        <div class="field">
-          <label>Section Blurb</label>
-          <textarea id="c-blurb" rows="2"></textarea>
+        <div class="field"><label>Section Blurb</label><textarea id="c-blurb" rows="2"></textarea></div>
+        <div class="field-row">
+          <div class="field"><label>Email</label><input type="email" id="c-email"></div>
+          <div class="field"><label>Phone</label><input type="text" id="c-phone"></div>
         </div>
         <div class="field-row">
-          <div class="field">
-            <label>Email</label>
-            <input type="email" id="c-email" placeholder="you@email.com">
-          </div>
-          <div class="field">
-            <label>Phone</label>
-            <input type="text" id="c-phone" placeholder="+62 812 3456 7890">
-          </div>
+          <div class="field"><label>LinkedIn URL</label><input type="url" id="c-linkedin"></div>
+          <div class="field"><label>GitHub URL</label><input type="url" id="c-github"></div>
         </div>
-        <div class="field-row">
-          <div class="field">
-            <label>LinkedIn URL</label>
-            <input type="url" id="c-linkedin" placeholder="https://linkedin.com/in/yourprofile">
-          </div>
-          <div class="field">
-            <label>GitHub URL</label>
-            <input type="url" id="c-github" placeholder="https://github.com/yourusername">
-          </div>
-        </div>
-        <div class="field">
-          <label>Footer Text</label>
-          <input type="text" id="c-footer" placeholder="© 2025 Your Name — ...">
-        </div>
+        <div class="field"><label>Footer Text</label><input type="text" id="c-footer"></div>
       </div>
 
-      <!-- SETTINGS -->
+      <!-- SECURITY & JSONBIN SETTINGS -->
       <div class="panel" id="panel-settings">
-        <div class="panel-title">Security Settings</div>
-        <div class="panel-sub">Change your admin password.</div>
-        <div class="pwd-box">
-          <div class="pwd-box-title">🔒 Change Password</div>
+        <div class="panel-title">Security & JSONBin Configuration</div>
+        <div class="panel-sub">Change your admin password and connect to JSONBin for remote storage.</div>
+
+        <!-- JSONBin config box -->
+        <div class="jsonbin-box">
+          <div class="jsonbin-box-title">☁️ JSONBin Remote Storage</div>
+          <div class="jsonbin-hint">Get your Bin ID and Master Key from <a href="https://jsonbin.io" target="_blank">jsonbin.io</a>. Create a new bin and copy the credentials.</div>
           <div class="field-row">
-            <div class="field">
-              <label>Current Password</label>
-              <input type="password" id="pwd-current" placeholder="Current password">
-            </div>
-            <div class="field">
-              <label>New Password</label>
-              <input type="password" id="pwd-new" placeholder="New password (min 6 chars)">
-            </div>
+            <div class="field"><label>Bin ID</label><input type="text" id="jsonbin-id" placeholder="e.g. 5f9c3f0b9f1e1e1e1e1e1e1e"></div>
+            <div class="field"><label>API Key (X-Master-Key)</label><input type="text" id="jsonbin-key" placeholder="$2b$10$..."></div>
           </div>
-          <div class="field">
-            <label>Confirm New Password</label>
-            <input type="password" id="pwd-confirm" placeholder="Repeat new password" style="max-width:300px">
+          <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+            <button class="btn-secondary" onclick="testJsonBin()">🔌 Test Connection</button>
+            <button class="btn-secondary" onclick="fetchFromJsonBin()">📥 Fetch from JSONBin</button>
+            <button class="btn-secondary" onclick="pushToJsonBin()">📤 Push to JSONBin</button>
+            <button class="btn-secondary" onclick="saveConfigToLocal()">💾 Save Config</button>
           </div>
+          <div class="field-hint" style="margin-top:0.75rem;">⚠️ The API key is stored in your browser’s localStorage. Use a dedicated master key for this bin only.</div>
+        </div>
+
+        <!-- Password change box -->
+        <div class="pwd-box">
+          <div class="pwd-box-title">🔒 Change Admin Password</div>
+          <div class="field-row">
+            <div class="field"><label>Current Password</label><input type="password" id="pwd-current"></div>
+            <div class="field"><label>New Password</label><input type="password" id="pwd-new"></div>
+          </div>
+          <div class="field"><label>Confirm New Password</label><input type="password" id="pwd-confirm" style="max-width:300px"></div>
           <button class="btn-save-all" onclick="changePassword()">Update Password</button>
         </div>
 
+        <!-- Danger zone -->
         <div class="danger-zone">
           <div class="danger-zone-title">⚠ Danger Zone</div>
-          <p>This will delete all your CV content and reset everything to the default placeholder data. This cannot be undone.</p>
-          <button class="btn-danger" onclick="resetAll()">Reset All Content</button>
+          <p>This will delete all your local CV content and reset it to the default placeholder data. Remote JSONBin data is NOT affected unless you push afterwards.</p>
+          <button class="btn-danger" onclick="resetAll()">Reset Local Content to Defaults</button>
         </div>
       </div>
 
@@ -402,7 +376,9 @@ header{
 <div id="toast"></div>
 
 <script>
-// ── DATA & AUTH ──────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────
+//  DEFAULT DATA STRUCTURE
+// ──────────────────────────────────────────────────────────────
 const DEFAULT = {
   hero:{name:"Your Full Name",nameItalic:"Full",tag:"Open to opportunities",subtitle:"Senior [Your Title] with X+ years crafting solutions.",badge:"Available for work",photoUrl:"",cvUrl:""},
   stats:[{num:"8+",label:"Years Experience"},{num:"32",label:"Projects Delivered"},{num:"5",label:"Companies"},{num:"12",label:"Awards Won"}],
@@ -414,10 +390,13 @@ const DEFAULT = {
   footer:"© 2025 Your Name — Hosted free on GitHub Pages"
 };
 
-function getData(){try{return JSON.parse(localStorage.getItem('cv_data'))||JSON.parse(JSON.stringify(DEFAULT));}catch(e){return JSON.parse(JSON.stringify(DEFAULT));}}
-function setData(d){localStorage.setItem('cv_data',JSON.stringify(d));}
-function getPass(){return localStorage.getItem('cv_admin_pass')||'admin123';}
-function setPass(p){localStorage.setItem('cv_admin_pass',p);}
+// ── LOCALSTORAGE HELPERS ─────────────────────────────────────
+function getLocalData(){ try{ return JSON.parse(localStorage.getItem('cv_data'))||JSON.parse(JSON.stringify(DEFAULT)); }catch(e){ return JSON.parse(JSON.stringify(DEFAULT)); } }
+function setLocalData(d){ localStorage.setItem('cv_data',JSON.stringify(d)); }
+function getPass(){ return localStorage.getItem('cv_admin_pass')||'admin123'; }
+function setPass(p){ localStorage.setItem('cv_admin_pass',p); }
+function getJsonBinConfig(){ try{ return JSON.parse(localStorage.getItem('cv_config'))||{binId:'',apiKey:''}; }catch(e){ return {binId:'',apiKey:''}; } }
+function setJsonBinConfig(cfg){ localStorage.setItem('cv_config',JSON.stringify(cfg)); }
 
 // ── LOGIN ────────────────────────────────────────────────────
 function doLogin(){
@@ -433,37 +412,35 @@ function doLogin(){
     document.getElementById('pwd-input').focus();
   }
 }
-function logout(){sessionStorage.removeItem('cv_admin_ok');location.reload();}
-
-// Auto-login if session active
+function logout(){ sessionStorage.removeItem('cv_admin_ok'); location.reload(); }
 if(sessionStorage.getItem('cv_admin_ok')==='1'){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
   document.addEventListener('DOMContentLoaded',loadAll);
 }
-document.getElementById('pwd-input').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
-// ── PANELS ───────────────────────────────────────────────────
+// ── PANEL SWITCHING ──────────────────────────────────────────
 function showPanel(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
-  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelector(`.sidebar-item[onclick="showPanel('${name}')"]`).classList.add('active');
 }
 
-// ── TOAST ────────────────────────────────────────────────────
-function toast(msg,ok=true){
+// ── TOAST NOTIFICATION ───────────────────────────────────────
+function toast(msg, isError=false){
   const t=document.getElementById('toast');
-  t.textContent=(ok?'✓ ':'✗ ')+msg;
-  t.style.background=ok?'#2c3e50':'#c53030';
+  t.textContent=(isError?'⚠️ ':'✓ ')+msg;
+  t.style.background=isError?'#c53030':'#2c3e50';
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2800);
+  setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// ── PHOTO ────────────────────────────────────────────────────
+// ── PHOTO HANDLING ───────────────────────────────────────────
+let _photoUrl='';
 function handlePhoto(input){
   const file=input.files[0]; if(!file)return;
-  if(file.size>2*1024*1024){toast('Image too large. Max 2MB.',false);return;}
+  if(file.size>2*1024*1024){ toast('Image too large. Max 2MB.',true); return; }
   const r=new FileReader();
   r.onload=e=>{
     const url=e.target.result;
@@ -474,7 +451,6 @@ function handlePhoto(input){
   };
   r.readAsDataURL(file);
 }
-let _photoUrl='';
 function clearPhoto(){
   _photoUrl='CLEAR';
   document.getElementById('photo-preview-img').style.display='none';
@@ -482,12 +458,12 @@ function clearPhoto(){
   document.getElementById('photo-file').value='';
 }
 
-// ── TAGS INPUT ────────────────────────────────────────────────
+// ── TAGS INPUT (reusable) ────────────────────────────────────
 function makeTagsInput(containerId, initialTags){
   const wrap=document.getElementById(containerId);
+  if(!wrap) return;
   wrap.innerHTML='';
   let tags=[...initialTags];
-
   function refresh(){
     wrap.innerHTML='';
     tags.forEach((tag,i)=>{
@@ -498,14 +474,14 @@ function makeTagsInput(containerId, initialTags){
     });
     const inp=document.createElement('input');
     inp.className='tags-input';
-    inp.placeholder=tags.length?'':'Add skills, press Enter';
+    inp.placeholder=tags.length?'':'Add tags, press Enter';
     inp.onkeydown=e=>{
       if((e.key==='Enter'||e.key===',')&&inp.value.trim()){
         e.preventDefault();
         tags.push(inp.value.trim().replace(/,$/,''));
         refresh();
       } else if(e.key==='Backspace'&&!inp.value&&tags.length){
-        tags.pop();refresh();
+        tags.pop(); refresh();
       }
     };
     wrap.appendChild(inp);
@@ -515,30 +491,28 @@ function makeTagsInput(containerId, initialTags){
 }
 function getTagsFromInput(containerId){
   const wrap=document.getElementById(containerId);
+  if(!wrap) return [];
   return [...wrap.querySelectorAll('.tag-pill')].map(p=>p.textContent.replace('×','').trim());
 }
 function updateTags(id){} // pills self-manage
 
-// ── STATS ─────────────────────────────────────────────────────
+// ── STATS ────────────────────────────────────────────────────
 function renderStats(stats){
   const el=document.getElementById('stats-list');
   el.innerHTML='';
   stats.forEach((s,i)=>{
     el.insertAdjacentHTML('beforeend',`
     <div class="item-card" id="stat-card-${i}">
-      <div class="item-card-header">
-        <span class="item-card-title">Stat #${i+1}</span>
-        <button class="btn-remove" onclick="removeStat(${i})">Remove</button>
-      </div>
+      <div class="item-card-header"><span>Stat #${i+1}</span><button class="btn-remove" onclick="removeStat(${i})">Remove</button></div>
       <div class="field-row">
-        <div class="field"><label>Number / Value</label><input type="text" id="stat-num-${i}" value="${s.num}" placeholder="e.g. 8+"></div>
-        <div class="field"><label>Label</label><input type="text" id="stat-label-${i}" value="${s.label}" placeholder="e.g. Years Experience"></div>
+        <div class="field"><label>Number</label><input type="text" id="stat-num-${i}" value="${s.num}"></div>
+        <div class="field"><label>Label</label><input type="text" id="stat-label-${i}" value="${s.label}"></div>
       </div>
     </div>`);
   });
 }
-function addStat(){const d=getData();d.stats.push({num:'0',label:'New Stat'});setData(d);renderStats(d.stats);}
-function removeStat(i){const d=getData();d.stats.splice(i,1);setData(d);renderStats(d.stats);}
+function addStat(){ const d=getLocalData(); d.stats.push({num:'0',label:'New Stat'}); setLocalData(d); renderStats(d.stats); }
+function removeStat(i){ const d=getLocalData(); d.stats.splice(i,1); setLocalData(d); renderStats(d.stats); }
 function collectStats(){
   const cards=document.querySelectorAll('[id^="stat-card-"]');
   return [...cards].map(c=>{
@@ -547,32 +521,24 @@ function collectStats(){
   });
 }
 
-// ── EXPERIENCE ────────────────────────────────────────────────
+// ── EXPERIENCE ───────────────────────────────────────────────
 function renderExp(exps){
   const el=document.getElementById('exp-list');
   el.innerHTML='';
   exps.forEach((e,i)=>{
     el.insertAdjacentHTML('beforeend',`
     <div class="item-card" id="exp-card-${i}">
-      <div class="item-card-header">
-        <span class="item-card-title">${e.company||'New Experience'}</span>
-        <button class="btn-remove" onclick="removeExp(${i})">Remove</button>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Period</label><input type="text" id="exp-period-${i}" value="${e.period}" placeholder="2022 — Present"></div>
-        <div class="field"><label>Company</label><input type="text" id="exp-company-${i}" value="${e.company}" placeholder="Company Name"></div>
-      </div>
-      <div class="field"><label>Role / Title</label><input type="text" id="exp-role-${i}" value="${e.role}" placeholder="Senior Developer"></div>
+      <div class="item-card-header"><span>${e.company||'Experience'}</span><button class="btn-remove" onclick="removeExp(${i})">Remove</button></div>
+      <div class="field-row"><div class="field"><label>Period</label><input type="text" id="exp-period-${i}" value="${e.period}"></div><div class="field"><label>Company</label><input type="text" id="exp-company-${i}" value="${e.company}"></div></div>
+      <div class="field"><label>Role</label><input type="text" id="exp-role-${i}" value="${e.role}"></div>
       <div class="field"><label>Description</label><textarea id="exp-desc-${i}" rows="3">${e.desc}</textarea></div>
-      <div class="field"><label>Skill Tags <span style="font-weight:300;text-transform:none;">(press Enter to add)</span></label>
-        <div class="tags-input-wrap" id="exp-tags-${i}"></div>
-      </div>
+      <div class="field"><label>Skill Tags</label><div class="tags-input-wrap" id="exp-tags-${i}"></div></div>
     </div>`);
     makeTagsInput('exp-tags-'+i, e.tags||[]);
   });
 }
-function addExp(){const d=getData();d.experience.push({period:'',company:'New Company',role:'',desc:'',tags:[]});setData(d);renderExp(d.experience);}
-function removeExp(i){const d=getData();d.experience.splice(i,1);setData(d);renderExp(d.experience);}
+function addExp(){ const d=getLocalData(); d.experience.push({period:'',company:'New Company',role:'',desc:'',tags:[]}); setLocalData(d); renderExp(d.experience); }
+function removeExp(i){ const d=getLocalData(); d.experience.splice(i,1); setLocalData(d); renderExp(d.experience); }
 function collectExp(){
   const cards=document.querySelectorAll('[id^="exp-card-"]');
   return [...cards].map(c=>{
@@ -581,31 +547,23 @@ function collectExp(){
   });
 }
 
-// ── SKILLS ────────────────────────────────────────────────────
+// ── SKILLS ───────────────────────────────────────────────────
 function renderSkills(skills){
   const el=document.getElementById('skills-list');
   el.innerHTML='';
   skills.forEach((s,i)=>{
     el.insertAdjacentHTML('beforeend',`
     <div class="item-card" id="skill-card-${i}">
-      <div class="item-card-header">
-        <span class="item-card-title">${s.title||'New Category'}</span>
-        <button class="btn-remove" onclick="removeSkill(${i})">Remove</button>
-      </div>
-      <div class="field-row-3">
-        <div class="field"><label>Icon (emoji)</label><input type="text" id="skill-icon-${i}" value="${s.icon}" placeholder="⚙️"></div>
-        <div class="field" style="grid-column:span 2"><label>Category Title</label><input type="text" id="skill-title-${i}" value="${s.title}" placeholder="Core Expertise"></div>
-      </div>
-      <div class="field"><label>Description</label><input type="text" id="skill-desc-${i}" value="${s.desc}" placeholder="Short description"></div>
-      <div class="field"><label>Skills <span style="font-weight:300;text-transform:none;">(press Enter to add)</span></label>
-        <div class="tags-input-wrap" id="skill-items-${i}"></div>
-      </div>
+      <div class="item-card-header"><span>${s.title||'Skill'}</span><button class="btn-remove" onclick="removeSkill(${i})">Remove</button></div>
+      <div class="field-row-3"><div class="field"><label>Icon</label><input type="text" id="skill-icon-${i}" value="${s.icon}"></div><div class="field" style="grid-column:span 2"><label>Title</label><input type="text" id="skill-title-${i}" value="${s.title}"></div></div>
+      <div class="field"><label>Description</label><input type="text" id="skill-desc-${i}" value="${s.desc}"></div>
+      <div class="field"><label>Skills</label><div class="tags-input-wrap" id="skill-items-${i}"></div></div>
     </div>`);
     makeTagsInput('skill-items-'+i, s.items||[]);
   });
 }
-function addSkill(){const d=getData();d.skills.push({icon:'⭐',title:'New Category',desc:'',items:[]});setData(d);renderSkills(d.skills);}
-function removeSkill(i){const d=getData();d.skills.splice(i,1);setData(d);renderSkills(d.skills);}
+function addSkill(){ const d=getLocalData(); d.skills.push({icon:'⭐',title:'New Category',desc:'',items:[]}); setLocalData(d); renderSkills(d.skills); }
+function removeSkill(i){ const d=getLocalData(); d.skills.splice(i,1); setLocalData(d); renderSkills(d.skills); }
 function collectSkills(){
   const cards=document.querySelectorAll('[id^="skill-card-"]');
   return [...cards].map(c=>{
@@ -614,28 +572,22 @@ function collectSkills(){
   });
 }
 
-// ── EDUCATION ─────────────────────────────────────────────────
+// ── EDUCATION ────────────────────────────────────────────────
 function renderEdu(edu){
   const el=document.getElementById('edu-list');
   el.innerHTML='';
   edu.forEach((e,i)=>{
     el.insertAdjacentHTML('beforeend',`
     <div class="item-card" id="edu-card-${i}">
-      <div class="item-card-header">
-        <span class="item-card-title">${e.degree||'New Entry'}</span>
-        <button class="btn-remove" onclick="removeEdu(${i})">Remove</button>
-      </div>
-      <div class="field"><label>Degree / Certification</label><input type="text" id="edu-degree-${i}" value="${e.degree}" placeholder="Bachelor of Computer Science"></div>
-      <div class="field-row">
-        <div class="field"><label>School / Organization</label><input type="text" id="edu-school-${i}" value="${e.school}" placeholder="University Name, City"></div>
-        <div class="field"><label>Period</label><input type="text" id="edu-period-${i}" value="${e.period}" placeholder="2012 — 2016"></div>
-      </div>
+      <div class="item-card-header"><span>${e.degree||'Education'}</span><button class="btn-remove" onclick="removeEdu(${i})">Remove</button></div>
+      <div class="field"><label>Degree</label><input type="text" id="edu-degree-${i}" value="${e.degree}"></div>
+      <div class="field-row"><div class="field"><label>School</label><input type="text" id="edu-school-${i}" value="${e.school}"></div><div class="field"><label>Period</label><input type="text" id="edu-period-${i}" value="${e.period}"></div></div>
       <div class="field"><label>Description</label><textarea id="edu-desc-${i}" rows="2">${e.desc}</textarea></div>
     </div>`);
   });
 }
-function addEdu(){const d=getData();d.education.push({degree:'',school:'',period:'',desc:''});setData(d);renderEdu(d.education);}
-function removeEdu(i){const d=getData();d.education.splice(i,1);setData(d);renderEdu(d.education);}
+function addEdu(){ const d=getLocalData(); d.education.push({degree:'',school:'',period:'',desc:''}); setLocalData(d); renderEdu(d.education); }
+function removeEdu(i){ const d=getLocalData(); d.education.splice(i,1); setLocalData(d); renderEdu(d.education); }
 function collectEdu(){
   const cards=document.querySelectorAll('[id^="edu-card-"]');
   return [...cards].map(c=>{
@@ -644,28 +596,22 @@ function collectEdu(){
   });
 }
 
-// ── ACHIEVEMENTS ──────────────────────────────────────────────
+// ── ACHIEVEMENTS ─────────────────────────────────────────────
 function renderAchieve(items){
   const el=document.getElementById('achieve-list');
   el.innerHTML='';
   items.forEach((a,i)=>{
     el.insertAdjacentHTML('beforeend',`
     <div class="item-card" id="achieve-card-${i}">
-      <div class="item-card-header">
-        <span class="item-card-title">${a.title||'New Achievement'}</span>
-        <button class="btn-remove" onclick="removeAchieve(${i})">Remove</button>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Year</label><input type="text" id="achieve-year-${i}" value="${a.year}" placeholder="2024"></div>
-        <div class="field"><label>Organization</label><input type="text" id="achieve-org-${i}" value="${a.org}" placeholder="Company / Awarding Body"></div>
-      </div>
-      <div class="field"><label>Achievement Title</label><input type="text" id="achieve-title-${i}" value="${a.title}" placeholder="Award or Recognition Name"></div>
+      <div class="item-card-header"><span>${a.title||'Achievement'}</span><button class="btn-remove" onclick="removeAchieve(${i})">Remove</button></div>
+      <div class="field-row"><div class="field"><label>Year</label><input type="text" id="achieve-year-${i}" value="${a.year}"></div><div class="field"><label>Organization</label><input type="text" id="achieve-org-${i}" value="${a.org}"></div></div>
+      <div class="field"><label>Title</label><input type="text" id="achieve-title-${i}" value="${a.title}"></div>
       <div class="field"><label>Description</label><textarea id="achieve-desc-${i}" rows="2">${a.desc}</textarea></div>
     </div>`);
   });
 }
-function addAchieve(){const d=getData();d.achievements.push({year:'2025',title:'',org:'',desc:''});setData(d);renderAchieve(d.achievements);}
-function removeAchieve(i){const d=getData();d.achievements.splice(i,1);setData(d);renderAchieve(d.achievements);}
+function addAchieve(){ const d=getLocalData(); d.achievements.push({year:'2025',title:'',org:'',desc:''}); setLocalData(d); renderAchieve(d.achievements); }
+function removeAchieve(i){ const d=getLocalData(); d.achievements.splice(i,1); setLocalData(d); renderAchieve(d.achievements); }
 function collectAchieve(){
   const cards=document.querySelectorAll('[id^="achieve-card-"]');
   return [...cards].map(c=>{
@@ -674,9 +620,9 @@ function collectAchieve(){
   });
 }
 
-// ── LOAD ALL ──────────────────────────────────────────────────
+// ── LOAD DATA INTO EDITOR (from local storage) ───────────────
 function loadAll(){
-  const d=getData();
+  const d=getLocalData();
   const h=d.hero;
   document.getElementById('h-name').value=h.name||'';
   document.getElementById('h-italic').value=h.nameItalic||'';
@@ -702,11 +648,15 @@ function loadAll(){
   document.getElementById('c-linkedin').value=c.linkedin||'';
   document.getElementById('c-github').value=c.github||'';
   document.getElementById('c-footer').value=d.footer||'';
+  // Load JSONBin config into UI
+  const cfg=getJsonBinConfig();
+  document.getElementById('jsonbin-id').value=cfg.binId||'';
+  document.getElementById('jsonbin-key').value=cfg.apiKey||'';
 }
 
-// ── SAVE ALL ──────────────────────────────────────────────────
-function saveAll(){
-  const d=getData();
+// ── SAVE FROM EDITOR TO LOCAL STORAGE ────────────────────────
+function collectAllData(){
+  const d=getLocalData(); // start from current local to preserve structure, then overwrite
   d.hero={
     name:document.getElementById('h-name').value,
     nameItalic:document.getElementById('h-italic').value,
@@ -729,18 +679,99 @@ function saveAll(){
     github:document.getElementById('c-github').value
   };
   d.footer=document.getElementById('c-footer').value;
-  setData(d);
-  toast('All changes saved!');
+  return d;
 }
 
-// ── PASSWORD ──────────────────────────────────────────────────
+function saveAll(){
+  const data=collectAllData();
+  setLocalData(data);
+  toast('Saved to local storage.');
+  // Also push to JSONBin if configured
+  pushToJsonBin(true); // silent mode (shows toast only on success/fail)
+}
+
+// ── JSONBIN API INTERACTION ──────────────────────────────────
+function saveConfigToLocal(){
+  const binId=document.getElementById('jsonbin-id').value.trim();
+  const apiKey=document.getElementById('jsonbin-key').value.trim();
+  if(!binId || !apiKey){
+    toast('Please fill both Bin ID and API Key.',true);
+    return;
+  }
+  setJsonBinConfig({binId,apiKey});
+  toast('Configuration saved to localStorage.');
+}
+
+async function testJsonBin(){
+  const cfg=getJsonBinConfig();
+  if(!cfg.binId || !cfg.apiKey){
+    toast('No JSONBin config found. Save config first.',true);
+    return;
+  }
+  toast('Testing connection...');
+  try{
+    const res=await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}/latest`,{headers:{'X-Master-Key':cfg.apiKey}});
+    if(res.ok){
+      toast('Connection successful! Bin exists and key works.');
+    } else {
+      toast(`Error ${res.status}: ${res.statusText}`,true);
+    }
+  }catch(e){
+    toast(`Failed: ${e.message}`,true);
+  }
+}
+
+async function fetchFromJsonBin(){
+  const cfg=getJsonBinConfig();
+  if(!cfg.binId || !cfg.apiKey){
+    toast('No JSONBin config. Save config first.',true);
+    return;
+  }
+  toast('Fetching from JSONBin...');
+  try{
+    const res=await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}/latest`,{headers:{'X-Master-Key':cfg.apiKey}});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json=await res.json();
+    const remoteData=json.record;
+    if(!remoteData) throw new Error('Bin contains no valid CV data.');
+    setLocalData(remoteData);
+    loadAll(); // refresh editor
+    toast('Data loaded from JSONBin into editor.');
+  }catch(e){
+    toast(`Fetch failed: ${e.message}`,true);
+  }
+}
+
+async function pushToJsonBin(silent=false){
+  const cfg=getJsonBinConfig();
+  if(!cfg.binId || !cfg.apiKey){
+    if(!silent) toast('No JSONBin config. Save config first.',true);
+    return false;
+  }
+  const data=collectAllData();
+  try{
+    const res=await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':cfg.apiKey},
+      body:JSON.stringify(data)
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    if(!silent) toast('Successfully pushed to JSONBin!');
+    return true;
+  }catch(e){
+    if(!silent) toast(`Push failed: ${e.message}`,true);
+    return false;
+  }
+}
+
+// ── PASSWORD CHANGE ──────────────────────────────────────────
 function changePassword(){
   const cur=document.getElementById('pwd-current').value;
   const nw=document.getElementById('pwd-new').value;
   const cf=document.getElementById('pwd-confirm').value;
-  if(cur!==getPass()){toast('Current password is wrong.',false);return;}
-  if(nw.length<6){toast('New password must be at least 6 characters.',false);return;}
-  if(nw!==cf){toast('Passwords do not match.',false);return;}
+  if(cur!==getPass()){ toast('Current password is wrong.',true); return; }
+  if(nw.length<6){ toast('New password must be at least 6 characters.',true); return; }
+  if(nw!==cf){ toast('Passwords do not match.',true); return; }
   setPass(nw);
   document.getElementById('pwd-current').value='';
   document.getElementById('pwd-new').value='';
@@ -748,14 +779,15 @@ function changePassword(){
   toast('Password updated!');
 }
 
+// ── RESET LOCAL CONTENT ──────────────────────────────────────
 function resetAll(){
-  if(!confirm('Reset ALL content to defaults? This cannot be undone.'))return;
+  if(!confirm('Reset ALL local content to default? This will NOT affect JSONBin unless you push afterwards.')) return;
   localStorage.removeItem('cv_data');
   loadAll();
-  toast('Content reset to defaults.');
+  toast('Local content reset to defaults.');
 }
 
-// Init
+// initial load if already logged in
 if(sessionStorage.getItem('cv_admin_ok')==='1') loadAll();
 </script>
 </body>
