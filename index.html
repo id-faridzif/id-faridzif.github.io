@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -246,23 +247,20 @@ function getCfg() {
 async function loadData() {
   const cfg = getCfg();
   if (!cfg.binId || !cfg.apiKey) {
-    // Not configured yet — show setup hint
     hideLoading();
     document.getElementById('hero-name').textContent = 'Setup Required';
     document.getElementById('hero-subtitle').textContent = 'Visit /admin.html to connect your JSONBin and start editing your CV.';
     return;
   }
   try {
-    const res = await fetch('https://api.jsonbin.io/v3/b/' + cfg.binId + '/latest', {
-      headers: { 'X-Master-Key': cfg.apiKey }
-    });
-    if (!res.ok) throw new Error('Fetch failed');
-    const json = await res.json();
-    render(json.record);
-    // cache for offline fallback
-    localStorage.setItem('cv_cache', JSON.stringify(json.record));
+    const data = await fetchFromJsonBin(cfg.binId, cfg.apiKey);
+    if (data) {
+      render(data);
+      localStorage.setItem('cv_cache', JSON.stringify(data));
+    } else {
+      throw new Error('No data');
+    }
   } catch(e) {
-    // fallback to cached data if available
     const cached = localStorage.getItem('cv_cache');
     if (cached) { render(JSON.parse(cached)); }
     else {
@@ -270,6 +268,38 @@ async function loadData() {
     }
   }
   hideLoading();
+}
+
+async function fetchFromJsonBin(binId, apiKey) {
+  // First fetch the main bin
+  const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+    headers: { 'X-Master-Key': apiKey }
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  let record = json.record;
+  
+  // Check if it's a chunked payload
+  if (record && record.__chunks__ && Array.isArray(record.__chunks__)) {
+    let fullCompressed = '';
+    for (const chunkBinId of record.__chunks__) {
+      const chunkRes = await fetch(`https://api.jsonbin.io/v3/b/${chunkBinId}/latest`, {
+        headers: { 'X-Master-Key': apiKey }
+      });
+      if (!chunkRes.ok) throw new Error(`Failed to fetch chunk ${chunkBinId}`);
+      const chunkJson = await chunkRes.json();
+      fullCompressed += chunkJson.record.chunkData;
+    }
+    const decompressed = LZString.decompressFromUTF16(fullCompressed);
+    return JSON.parse(decompressed);
+  } else {
+    // Single bin, maybe compressed or plain
+    if (record && record.__compressed__) {
+      const decompressed = LZString.decompressFromUTF16(record.data);
+      return JSON.parse(decompressed);
+    }
+    return record; // plain JSON
+  }
 }
 
 function hideLoading() {

@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CV Admin — Remote CMS with JSONBin</title>
+<title>CV Admin — Remote CMS with Chunking</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -225,7 +226,7 @@ header{
 <div id="app">
   <header>
     <div class="header-left">
-      <span class="header-logo">CV Admin (JSONBin)</span>
+      <span class="header-logo">CV Admin (JSONBin with Chunking)</span>
       <span class="header-badge">Remote CMS</span>
     </div>
     <div class="header-right">
@@ -331,23 +332,23 @@ header{
       <!-- SECURITY & JSONBIN SETTINGS -->
       <div class="panel" id="panel-settings">
         <div class="panel-title">Security & JSONBin Configuration</div>
-        <div class="panel-sub">Change your admin password and connect to JSONBin for remote storage.</div>
+        <div class="panel-sub">Change your admin password and connect to JSONBin for remote storage (with automatic chunking).</div>
 
         <!-- JSONBin config box -->
         <div class="jsonbin-box">
-          <div class="jsonbin-box-title">☁️ JSONBin Remote Storage</div>
-          <div class="jsonbin-hint">Get your Bin ID and Master Key from <a href="https://jsonbin.io" target="_blank">jsonbin.io</a>. Create a new bin and copy the credentials.</div>
+          <div class="jsonbin-box-title">☁️ JSONBin Remote Storage (Auto Chunking)</div>
+          <div class="jsonbin-hint">Get your Bin ID and Master Key from <a href="https://jsonbin.io" target="_blank">jsonbin.io</a>. The main bin will store the index; additional chunk bins will be created automatically.</div>
           <div class="field-row">
-            <div class="field"><label>Bin ID</label><input type="text" id="jsonbin-id" placeholder="e.g. 5f9c3f0b9f1e1e1e1e1e1e1e"></div>
+            <div class="field"><label>Main Bin ID</label><input type="text" id="jsonbin-id" placeholder="e.g. 5f9c3f0b9f1e1e1e1e1e1e1e"></div>
             <div class="field"><label>API Key (X-Master-Key)</label><input type="text" id="jsonbin-key" placeholder="$2b$10$..."></div>
           </div>
-          <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+          <div style="display:flex;gap:0.75rem;margin-top:0.5rem;flex-wrap:wrap;">
             <button class="btn-secondary" onclick="testJsonBin()">🔌 Test Connection</button>
             <button class="btn-secondary" onclick="fetchFromJsonBin()">📥 Fetch from JSONBin</button>
             <button class="btn-secondary" onclick="pushToJsonBin()">📤 Push to JSONBin</button>
             <button class="btn-secondary" onclick="saveConfigToLocal()">💾 Save Config</button>
           </div>
-          <div class="field-hint" style="margin-top:0.75rem;">⚠️ The API key is stored in your browser’s localStorage. Use a dedicated master key for this bin only.</div>
+          <div class="field-hint" style="margin-top:0.75rem;">⚠️ Data is compressed and automatically chunked if needed (max 95KB per chunk). Your API key is stored only in your browser's localStorage.</div>
         </div>
 
         <!-- Password change box -->
@@ -433,7 +434,7 @@ function toast(msg, isError=false){
   t.textContent=(isError?'⚠️ ':'✓ ')+msg;
   t.style.background=isError?'#c53030':'#2c3e50';
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000);
+  setTimeout(()=>t.classList.remove('show'),4000);
 }
 
 // ── PHOTO HANDLING ───────────────────────────────────────────
@@ -505,8 +506,8 @@ function renderStats(stats){
     <div class="item-card" id="stat-card-${i}">
       <div class="item-card-header"><span>Stat #${i+1}</span><button class="btn-remove" onclick="removeStat(${i})">Remove</button></div>
       <div class="field-row">
-        <div class="field"><label>Number</label><input type="text" id="stat-num-${i}" value="${s.num}"></div>
-        <div class="field"><label>Label</label><input type="text" id="stat-label-${i}" value="${s.label}"></div>
+        <div class="field"><label>Number</label><input type="text" id="stat-num-${i}" value="${s.num.replace(/"/g, '&quot;')}"></div>
+        <div class="field"><label>Label</label><input type="text" id="stat-label-${i}" value="${s.label.replace(/"/g, '&quot;')}"></div>
       </div>
     </div>`);
   });
@@ -528,10 +529,10 @@ function renderExp(exps){
   exps.forEach((e,i)=>{
     el.insertAdjacentHTML('beforeend',`
     <div class="item-card" id="exp-card-${i}">
-      <div class="item-card-header"><span>${e.company||'Experience'}</span><button class="btn-remove" onclick="removeExp(${i})">Remove</button></div>
-      <div class="field-row"><div class="field"><label>Period</label><input type="text" id="exp-period-${i}" value="${e.period}"></div><div class="field"><label>Company</label><input type="text" id="exp-company-${i}" value="${e.company}"></div></div>
-      <div class="field"><label>Role</label><input type="text" id="exp-role-${i}" value="${e.role}"></div>
-      <div class="field"><label>Description</label><textarea id="exp-desc-${i}" rows="3">${e.desc}</textarea></div>
+      <div class="item-card-header"><span>${escapeHtml(e.company)||'Experience'}</span><button class="btn-remove" onclick="removeExp(${i})">Remove</button></div>
+      <div class="field-row"><div class="field"><label>Period</label><input type="text" id="exp-period-${i}" value="${escapeHtml(e.period)}"></div><div class="field"><label>Company</label><input type="text" id="exp-company-${i}" value="${escapeHtml(e.company)}"></div></div>
+      <div class="field"><label>Role</label><input type="text" id="exp-role-${i}" value="${escapeHtml(e.role)}"></div>
+      <div class="field"><label>Description</label><textarea id="exp-desc-${i}" rows="3">${escapeHtml(e.desc)}</textarea></div>
       <div class="field"><label>Skill Tags</label><div class="tags-input-wrap" id="exp-tags-${i}"></div></div>
     </div>`);
     makeTagsInput('exp-tags-'+i, e.tags||[]);
@@ -554,9 +555,9 @@ function renderSkills(skills){
   skills.forEach((s,i)=>{
     el.insertAdjacentHTML('beforeend',`
     <div class="item-card" id="skill-card-${i}">
-      <div class="item-card-header"><span>${s.title||'Skill'}</span><button class="btn-remove" onclick="removeSkill(${i})">Remove</button></div>
-      <div class="field-row-3"><div class="field"><label>Icon</label><input type="text" id="skill-icon-${i}" value="${s.icon}"></div><div class="field" style="grid-column:span 2"><label>Title</label><input type="text" id="skill-title-${i}" value="${s.title}"></div></div>
-      <div class="field"><label>Description</label><input type="text" id="skill-desc-${i}" value="${s.desc}"></div>
+      <div class="item-card-header"><span>${escapeHtml(s.title)||'Skill'}</span><button class="btn-remove" onclick="removeSkill(${i})">Remove</button></div>
+      <div class="field-row-3"><div class="field"><label>Icon</label><input type="text" id="skill-icon-${i}" value="${escapeHtml(s.icon)}"></div><div class="field" style="grid-column:span 2"><label>Title</label><input type="text" id="skill-title-${i}" value="${escapeHtml(s.title)}"></div></div>
+      <div class="field"><label>Description</label><input type="text" id="skill-desc-${i}" value="${escapeHtml(s.desc)}"></div>
       <div class="field"><label>Skills</label><div class="tags-input-wrap" id="skill-items-${i}"></div></div>
     </div>`);
     makeTagsInput('skill-items-'+i, s.items||[]);
@@ -579,10 +580,10 @@ function renderEdu(edu){
   edu.forEach((e,i)=>{
     el.insertAdjacentHTML('beforeend',`
     <div class="item-card" id="edu-card-${i}">
-      <div class="item-card-header"><span>${e.degree||'Education'}</span><button class="btn-remove" onclick="removeEdu(${i})">Remove</button></div>
-      <div class="field"><label>Degree</label><input type="text" id="edu-degree-${i}" value="${e.degree}"></div>
-      <div class="field-row"><div class="field"><label>School</label><input type="text" id="edu-school-${i}" value="${e.school}"></div><div class="field"><label>Period</label><input type="text" id="edu-period-${i}" value="${e.period}"></div></div>
-      <div class="field"><label>Description</label><textarea id="edu-desc-${i}" rows="2">${e.desc}</textarea></div>
+      <div class="item-card-header"><span>${escapeHtml(e.degree)||'Education'}</span><button class="btn-remove" onclick="removeEdu(${i})">Remove</button></div>
+      <div class="field"><label>Degree</label><input type="text" id="edu-degree-${i}" value="${escapeHtml(e.degree)}"></div>
+      <div class="field-row"><div class="field"><label>School</label><input type="text" id="edu-school-${i}" value="${escapeHtml(e.school)}"></div><div class="field"><label>Period</label><input type="text" id="edu-period-${i}" value="${escapeHtml(e.period)}"></div></div>
+      <div class="field"><label>Description</label><textarea id="edu-desc-${i}" rows="2">${escapeHtml(e.desc)}</textarea></div>
     </div>`);
   });
 }
@@ -603,10 +604,10 @@ function renderAchieve(items){
   items.forEach((a,i)=>{
     el.insertAdjacentHTML('beforeend',`
     <div class="item-card" id="achieve-card-${i}">
-      <div class="item-card-header"><span>${a.title||'Achievement'}</span><button class="btn-remove" onclick="removeAchieve(${i})">Remove</button></div>
-      <div class="field-row"><div class="field"><label>Year</label><input type="text" id="achieve-year-${i}" value="${a.year}"></div><div class="field"><label>Organization</label><input type="text" id="achieve-org-${i}" value="${a.org}"></div></div>
-      <div class="field"><label>Title</label><input type="text" id="achieve-title-${i}" value="${a.title}"></div>
-      <div class="field"><label>Description</label><textarea id="achieve-desc-${i}" rows="2">${a.desc}</textarea></div>
+      <div class="item-card-header"><span>${escapeHtml(a.title)||'Achievement'}</span><button class="btn-remove" onclick="removeAchieve(${i})">Remove</button></div>
+      <div class="field-row"><div class="field"><label>Year</label><input type="text" id="achieve-year-${i}" value="${escapeHtml(a.year)}"></div><div class="field"><label>Organization</label><input type="text" id="achieve-org-${i}" value="${escapeHtml(a.org)}"></div></div>
+      <div class="field"><label>Title</label><input type="text" id="achieve-title-${i}" value="${escapeHtml(a.title)}"></div>
+      <div class="field"><label>Description</label><textarea id="achieve-desc-${i}" rows="2">${escapeHtml(a.desc)}</textarea></div>
     </div>`);
   });
 }
@@ -619,6 +620,9 @@ function collectAchieve(){
     return{year:document.getElementById('achieve-year-'+i).value,org:document.getElementById('achieve-org-'+i).value,title:document.getElementById('achieve-title-'+i).value,desc:document.getElementById('achieve-desc-'+i).value};
   });
 }
+
+// Helper to escape HTML for safe insertion
+function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
 // ── LOAD DATA INTO EDITOR (from local storage) ───────────────
 function loadAll(){
@@ -635,6 +639,9 @@ function loadAll(){
     document.getElementById('photo-preview-img').src=h.photoUrl;
     document.getElementById('photo-preview-img').style.display='block';
     document.querySelector('.photo-upload-txt').style.display='none';
+  } else {
+    document.getElementById('photo-preview-img').style.display='none';
+    document.querySelector('.photo-upload-txt').style.display='block';
   }
   renderStats(d.stats||[]);
   renderExp(d.experience||[]);
@@ -686,11 +693,11 @@ function saveAll(){
   const data=collectAllData();
   setLocalData(data);
   toast('Saved to local storage.');
-  // Also push to JSONBin if configured
-  pushToJsonBin(true); // silent mode (shows toast only on success/fail)
+  // Also push to JSONBin if configured (silent)
+  pushToJsonBin(true);
 }
 
-// ── JSONBIN API INTERACTION ──────────────────────────────────
+// ── JSONBIN API INTERACTION WITH CHUNKING ────────────────────
 function saveConfigToLocal(){
   const binId=document.getElementById('jsonbin-id').value.trim();
   const apiKey=document.getElementById('jsonbin-key').value.trim();
@@ -729,16 +736,43 @@ async function fetchFromJsonBin(){
   }
   toast('Fetching from JSONBin...');
   try{
-    const res=await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}/latest`,{headers:{'X-Master-Key':cfg.apiKey}});
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json=await res.json();
-    const remoteData=json.record;
-    if(!remoteData) throw new Error('Bin contains no valid CV data.');
-    setLocalData(remoteData);
-    loadAll(); // refresh editor
-    toast('Data loaded from JSONBin into editor.');
+    const data = await fetchJsonBinData(cfg.binId, cfg.apiKey);
+    if(data){
+      setLocalData(data);
+      loadAll();
+      toast('Data loaded from JSONBin into editor.');
+    } else {
+      toast('No valid data found in JSONBin.', true);
+    }
   }catch(e){
     toast(`Fetch failed: ${e.message}`,true);
+  }
+}
+
+async function fetchJsonBinData(binId, apiKey) {
+  const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+    headers: { 'X-Master-Key': apiKey }
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  let record = json.record;
+  if (record && record.__chunks__ && Array.isArray(record.__chunks__)) {
+    let fullCompressed = '';
+    for (const chunkBinId of record.__chunks__) {
+      const chunkRes = await fetch(`https://api.jsonbin.io/v3/b/${chunkBinId}/latest`, {
+        headers: { 'X-Master-Key': apiKey }
+      });
+      if (!chunkRes.ok) throw new Error(`Failed to fetch chunk ${chunkBinId}`);
+      const chunkJson = await chunkRes.json();
+      fullCompressed += chunkJson.record.chunkData;
+    }
+    const decompressed = LZString.decompressFromUTF16(fullCompressed);
+    return JSON.parse(decompressed);
+  } else if (record && record.__compressed__) {
+    const decompressed = LZString.decompressFromUTF16(record.data);
+    return JSON.parse(decompressed);
+  } else {
+    return record;
   }
 }
 
@@ -748,19 +782,73 @@ async function pushToJsonBin(silent=false){
     if(!silent) toast('No JSONBin config. Save config first.',true);
     return false;
   }
-  const data=collectAllData();
-  try{
-    const res=await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}`,{
-      method:'PUT',
-      headers:{'Content-Type':'application/json','X-Master-Key':cfg.apiKey},
-      body:JSON.stringify(data)
+  const data = collectAllData();
+  const jsonStr = JSON.stringify(data);
+  const compressed = LZString.compressToUTF16(jsonStr);
+  const CHUNK_SIZE = 95 * 1024; // 95KB per chunk (safe margin)
+  
+  if (compressed.length <= CHUNK_SIZE) {
+    // Single bin (compressed)
+    const payload = { __compressed__: true, data: compressed };
+    try {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': cfg.apiKey },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!silent) toast('Successfully pushed to JSONBin (single chunk).');
+      return true;
+    } catch(e) {
+      if (!silent) toast(`Push failed: ${e.message}`, true);
+      return false;
+    }
+  } else {
+    // Chunking needed
+    const chunks = [];
+    for (let i = 0; i < compressed.length; i += CHUNK_SIZE) {
+      chunks.push(compressed.slice(i, i + CHUNK_SIZE));
+    }
+    if (!silent) toast(`Splitting into ${chunks.length} chunks...`);
+    
+    // Create or update chunk bins
+    const chunkBinIds = [];
+    for (let idx = 0; idx < chunks.length; idx++) {
+      const chunkBinId = `${cfg.binId}_chunk_${idx}`;
+      const chunkPayload = { chunkData: chunks[idx] };
+      // Try to update existing chunk bin
+      let res = await fetch(`https://api.jsonbin.io/v3/b/${chunkBinId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': cfg.apiKey },
+        body: JSON.stringify(chunkPayload)
+      });
+      if (res.status === 404) {
+        // Create new bin
+        res = await fetch(`https://api.jsonbin.io/v3/b`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Master-Key': cfg.apiKey },
+          body: JSON.stringify(chunkPayload)
+        });
+        if (!res.ok) throw new Error(`Failed to create chunk bin ${chunkBinId}`);
+        const createJson = await res.json();
+        chunkBinIds.push(createJson.metadata.id);
+      } else if (res.ok) {
+        chunkBinIds.push(chunkBinId);
+      } else {
+        throw new Error(`Failed to update chunk bin ${chunkBinId}`);
+      }
+    }
+    
+    // Update main bin with chunk index
+    const indexPayload = { __chunks__: chunkBinIds };
+    const mainRes = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': cfg.apiKey },
+      body: JSON.stringify(indexPayload)
     });
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    if(!silent) toast('Successfully pushed to JSONBin!');
+    if (!mainRes.ok) throw new Error(`Failed to update main bin: ${mainRes.status}`);
+    if (!silent) toast(`Successfully pushed to JSONBin (${chunks.length} chunks).`);
     return true;
-  }catch(e){
-    if(!silent) toast(`Push failed: ${e.message}`,true);
-    return false;
   }
 }
 
