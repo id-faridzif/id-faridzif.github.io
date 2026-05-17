@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Admin — Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1e2a38;--ink-m:#4a5568;--ink-f:#8898aa;
+  --bg:#f4f6f9;--card:#fff;--border:#dce3ec;
+  --accent:#2b7fd4;--accent-d:#1a5fa8;--accent-l:#ddeeff;
+  --dark:#2c3e50;--danger:#e53e3e;--danger-l:#fff5f5;
+  --success:#38a169;--success-l:#f0fff4;
+}
+body{font-family:'DM Sans',sans-serif;font-weight:400;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.6}
+
+/* ── LOGIN ── */
+#login-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:var(--dark);
+}
+.login-box{
+  background:#fff;border-radius:8px;padding:2.5rem;width:360px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.3);
+}
+.login-logo{font-size:1.1rem;font-weight:500;color:var(--accent);margin-bottom:0.4rem;}
+.login-title{font-size:1.4rem;font-weight:500;color:var(--ink);margin-bottom:0.5rem;}
+.login-sub{font-size:0.85rem;color:var(--ink-m);margin-bottom:2rem;}
+.login-box label{font-size:0.8rem;font-weight:500;color:var(--ink-m);letter-spacing:0.05em;text-transform:uppercase;display:block;margin-bottom:0.4rem;}
+.login-box input[type=password]{
+  width:100%;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:4px;
+  font-family:inherit;font-size:0.95rem;color:var(--ink);outline:none;margin-bottom:1rem;
+  transition:border-color 0.2s;
+}
+.login-box input[type=password]:focus{border-color:var(--accent);}
+.login-err{font-size:0.82rem;color:var(--danger);margin-bottom:0.75rem;display:none;}
+.btn-login{
+  width:100%;padding:0.8rem;background:var(--accent);color:#fff;border:none;
+  border-radius:4px;font-family:inherit;font-size:0.9rem;font-weight:500;
+  cursor:pointer;transition:background 0.2s;
+}
+.btn-login:hover{background:var(--accent-d);}
+.login-hint{font-size:0.75rem;color:var(--ink-f);text-align:center;margin-top:1rem;}
+
+/* ── MAIN LAYOUT ── */
+#app{display:none;min-height:100vh;}
+
+header{
+  background:var(--dark);color:#fff;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:1rem 2rem;position:sticky;top:0;z-index:100;
+}
+.header-left{display:flex;align-items:center;gap:1rem;}
+.header-logo{font-size:0.95rem;font-weight:500;color:rgba(255,255,255,0.9);}
+.header-badge{
+  background:var(--accent);color:#fff;font-size:0.68rem;font-weight:500;
+  padding:0.2rem 0.6rem;border-radius:2px;letter-spacing:0.05em;text-transform:uppercase;
+}
+.header-right{display:flex;gap:0.75rem;align-items:center;}
+.btn-preview{
+  background:transparent;color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.2);
+  padding:0.45rem 1rem;border-radius:4px;font-family:inherit;font-size:0.82rem;
+  cursor:pointer;text-decoration:none;transition:all 0.2s;
+}
+.btn-preview:hover{background:rgba(255,255,255,0.1);color:#fff;}
+.btn-save-all{
+  background:var(--accent);color:#fff;border:none;
+  padding:0.5rem 1.25rem;border-radius:4px;font-family:inherit;font-size:0.82rem;font-weight:500;
+  cursor:pointer;transition:background 0.2s;
+}
+.btn-save-all:hover{background:var(--accent-d);}
+.btn-logout{
+  background:transparent;color:rgba(255,255,255,0.5);border:none;
+  font-family:inherit;font-size:0.82rem;cursor:pointer;padding:0.45rem 0.75rem;
+  border-radius:4px;transition:color 0.2s;
+}
+.btn-logout:hover{color:#fff;}
+
+.cms-body{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px);}
+
+/* ── SIDEBAR ── */
+.sidebar{background:#fff;border-right:1px solid var(--border);padding:1.5rem 0;}
+.sidebar-section{
+  font-size:0.7rem;font-weight:500;color:var(--ink-f);letter-spacing:0.1em;
+  text-transform:uppercase;padding:0.5rem 1.5rem;margin-top:1rem;
+}
+.sidebar-item{
+  display:flex;align-items:center;gap:0.6rem;
+  padding:0.6rem 1.5rem;cursor:pointer;font-size:0.88rem;color:var(--ink-m);
+  border-left:3px solid transparent;transition:all 0.15s;
+}
+.sidebar-item:hover{background:var(--bg);color:var(--ink);}
+.sidebar-item.active{background:var(--accent-l);color:var(--accent);border-left-color:var(--accent);font-weight:500;}
+.sidebar-icon{font-size:1rem;width:20px;text-align:center;}
+
+/* ── CONTENT PANELS ── */
+.panel{display:none;padding:2rem;max-width:860px;}
+.panel.active{display:block;}
+.panel-title{font-size:1.25rem;font-weight:500;color:var(--ink);margin-bottom:0.3rem;}
+.panel-sub{font-size:0.85rem;color:var(--ink-m);margin-bottom:2rem;}
+
+/* ── FORM ELEMENTS ── */
+.field{margin-bottom:1.25rem;}
+.field label{display:block;font-size:0.78rem;font-weight:500;color:var(--ink-m);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.4rem;}
+.field input,.field textarea,.field select{
+  width:100%;padding:0.65rem 0.9rem;border:1px solid var(--border);border-radius:4px;
+  font-family:inherit;font-size:0.9rem;color:var(--ink);outline:none;
+  transition:border-color 0.2s;background:#fff;
+}
+.field input:focus,.field textarea:focus{border-color:var(--accent);}
+.field textarea{resize:vertical;min-height:80px;}
+.field-hint{font-size:0.75rem;color:var(--ink-f);margin-top:0.3rem;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+
+/* ── CARDS (repeatable sections) ── */
+.item-card{
+  background:#fff;border:1px solid var(--border);border-radius:6px;
+  padding:1.25rem;margin-bottom:1rem;position:relative;
+}
+.item-card-header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);
+}
+.item-card-title{font-size:0.88rem;font-weight:500;color:var(--ink);}
+.btn-remove{
+  background:var(--danger-l);color:var(--danger);border:1px solid #fed7d7;
+  padding:0.25rem 0.6rem;border-radius:3px;font-size:0.75rem;font-family:inherit;
+  cursor:pointer;transition:background 0.2s;
+}
+.btn-remove:hover{background:#fed7d7;}
+.btn-add{
+  display:flex;align-items:center;gap:0.5rem;
+  background:var(--accent-l);color:var(--accent);border:1px solid #b3d7f5;
+  padding:0.5rem 1rem;border-radius:4px;font-size:0.82rem;font-family:inherit;font-weight:500;
+  cursor:pointer;margin-top:0.5rem;transition:background 0.2s;
+}
+.btn-add:hover{background:#c5e3fa;}
+
+/* Tags input */
+.tags-input-wrap{
+  display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;
+  border:1px solid var(--border);border-radius:4px;padding:0.4rem 0.6rem;
+  background:#fff;min-height:40px;cursor:text;transition:border-color 0.2s;
+}
+.tags-input-wrap:focus-within{border-color:var(--accent);}
+.tag-pill{
+  background:var(--accent-l);color:var(--accent-d);font-size:0.75rem;
+  padding:0.15rem 0.5rem;border-radius:2px;display:flex;align-items:center;gap:0.3rem;
+}
+.tag-pill button{background:none;border:none;color:inherit;cursor:pointer;padding:0;font-size:0.9rem;line-height:1;}
+.tags-input{border:none;outline:none;font-family:inherit;font-size:0.85rem;color:var(--ink);flex:1;min-width:80px;padding:0.1rem;}
+
+/* Photo upload */
+.photo-upload-area{
+  border:2px dashed var(--border);border-radius:6px;padding:2rem;text-align:center;
+  cursor:pointer;transition:border-color 0.2s;margin-bottom:0.5rem;
+}
+.photo-upload-area:hover{border-color:var(--accent);}
+.photo-preview{max-width:180px;max-height:220px;border-radius:4px;margin:0.75rem auto;display:block;object-fit:cover;}
+.photo-upload-txt{font-size:0.85rem;color:var(--ink-m);}
+.photo-upload-txt strong{color:var(--accent);}
+
+/* Password change */
+.pwd-box{
+  background:var(--accent-l);border:1px solid #b3d7f5;border-radius:6px;
+  padding:1.25rem;margin-bottom:1.5rem;
+}
+.pwd-box-title{font-size:0.9rem;font-weight:500;color:var(--accent-d);margin-bottom:0.75rem;}
+
+/* Toast */
+#toast{
+  position:fixed;bottom:2rem;right:2rem;z-index:9999;
+  background:var(--dark);color:#fff;padding:0.75rem 1.25rem;
+  border-radius:6px;font-size:0.85rem;opacity:0;
+  transition:opacity 0.3s;pointer-events:none;
+  display:flex;align-items:center;gap:0.5rem;
+}
+#toast.show{opacity:1;}
+
+/* Reset / danger zone */
+.danger-zone{
+  background:var(--danger-l);border:1px solid #fed7d7;border-radius:6px;
+  padding:1.25rem;margin-top:2rem;
+}
+.danger-zone-title{font-size:0.88rem;font-weight:500;color:var(--danger);margin-bottom:0.4rem;}
+.danger-zone p{font-size:0.82rem;color:#742a2a;margin-bottom:0.75rem;}
+.btn-danger{
+  background:var(--danger);color:#fff;border:none;padding:0.5rem 1rem;
+  border-radius:4px;font-family:inherit;font-size:0.82rem;font-weight:500;cursor:pointer;
+}
+.btn-danger:hover{background:#c53030;}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">⚙ CV Editor</div>
+    <h1 class="login-title">Admin Login</h1>
+    <p class="login-sub">Enter your password to edit your CV content.</p>
+    <label for="pwd-input">Password</label>
+    <input type="password" id="pwd-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-err" id="login-err">Incorrect password. Try again.</div>
+    <button class="btn-login" onclick="doLogin()">Sign In →</button>
+    <p class="login-hint">Default password: <strong>admin123</strong> — change it after first login</p>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app">
+  <header>
+    <div class="header-left">
+      <span class="header-logo">CV Admin</span>
+      <span class="header-badge">Editor</span>
+    </div>
+    <div class="header-right">
+      <a href="index.html" target="_blank" class="btn-preview">↗ Preview Site</a>
+      <button class="btn-save-all" onclick="saveAll()">💾 Save All</button>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="cms-body">
+    <nav class="sidebar">
+      <div class="sidebar-section">Content</div>
+      <div class="sidebar-item active" onclick="showPanel('hero')" id="tab-hero"><span class="sidebar-icon">👤</span> Hero</div>
+      <div class="sidebar-item" onclick="showPanel('stats')" id="tab-stats"><span class="sidebar-icon">📊</span> Stats</div>
+      <div class="sidebar-item" onclick="showPanel('experience')" id="tab-experience"><span class="sidebar-icon">💼</span> Experience</div>
+      <div class="sidebar-item" onclick="showPanel('skills')" id="tab-skills"><span class="sidebar-icon">⚡</span> Skills</div>
+      <div class="sidebar-item" onclick="showPanel('education')" id="tab-education"><span class="sidebar-icon">🎓</span> Education</div>
+      <div class="sidebar-item" onclick="showPanel('achievements')" id="tab-achievements"><span class="sidebar-icon">🏆</span> Achievements</div>
+      <div class="sidebar-item" onclick="showPanel('contact')" id="tab-contact"><span class="sidebar-icon">✉</span> Contact</div>
+      <div class="sidebar-section">Settings</div>
+      <div class="sidebar-item" onclick="showPanel('settings')" id="tab-settings"><span class="sidebar-icon">🔒</span> Security</div>
+    </nav>
+
+    <main style="background:var(--bg);padding:1.5rem;overflow-y:auto;">
+
+      <!-- HERO -->
+      <div class="panel active" id="panel-hero">
+        <div class="panel-title">Hero Section</div>
+        <div class="panel-sub">The first thing visitors see — your name, title, and photo.</div>
+
+        <div style="display:grid;grid-template-columns:1fr 220px;gap:2rem;align-items:start;">
+          <div>
+            <div class="field">
+              <label>Full Name</label>
+              <input type="text" id="h-name" placeholder="e.g. Faridz Ibrahim">
+            </div>
+            <div class="field">
+              <label>Italic Word in Name <span style="font-weight:300;text-transform:none;">(must be part of full name)</span></label>
+              <input type="text" id="h-italic" placeholder="e.g. Ibrahim — this word becomes italic & blue">
+              <div class="field-hint">Leave blank for no italic effect.</div>
+            </div>
+            <div class="field">
+              <label>Status Tag</label>
+              <input type="text" id="h-tag" placeholder="e.g. Open to opportunities">
+            </div>
+            <div class="field">
+              <label>Subtitle / Tagline</label>
+              <textarea id="h-subtitle" rows="3" placeholder="Short description about yourself..."></textarea>
+            </div>
+            <div class="field">
+              <label>Photo Badge Text</label>
+              <input type="text" id="h-badge" placeholder="e.g. Available for work">
+            </div>
+            <div class="field">
+              <label>CV Download URL <span style="font-weight:300;text-transform:none;">(optional)</span></label>
+              <input type="text" id="h-cv" placeholder="e.g. https://drive.google.com/file/d/.../view">
+              <div class="field-hint">Link to your PDF CV. Leave blank to hide the download button.</div>
+            </div>
+          </div>
+
+          <div>
+            <div class="field">
+              <label>Profile Photo</label>
+              <div class="photo-upload-area" onclick="document.getElementById('photo-file').click()">
+                <img id="photo-preview-img" class="photo-preview" style="display:none">
+                <div class="photo-upload-txt">
+                  <strong>Click to upload</strong><br>JPG, PNG, WEBP
+                </div>
+              </div>
+              <input type="file" id="photo-file" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+              <button class="btn-remove" style="width:100%" onclick="clearPhoto()">Remove Photo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="panel" id="panel-stats">
+        <div class="panel-title">Stats Strip</div>
+        <div class="panel-sub">The 4 highlight numbers shown on the dark banner.</div>
+        <div id="stats-list"></div>
+        <button class="btn-add" onclick="addStat()">+ Add Stat</button>
+      </div>
+
+      <!-- EXPERIENCE -->
+      <div class="panel" id="panel-experience">
+        <div class="panel-title">Work Experience</div>
+        <div class="panel-sub">List your jobs from most recent to oldest.</div>
+        <div id="exp-list"></div>
+        <button class="btn-add" onclick="addExp()">+ Add Experience</button>
+      </div>
+
+      <!-- SKILLS -->
+      <div class="panel" id="panel-skills">
+        <div class="panel-title">Skills & Expertise</div>
+        <div class="panel-sub">Each skill category becomes a card. Add items as tags (press Enter or comma).</div>
+        <div id="skills-list"></div>
+        <button class="btn-add" onclick="addSkill()">+ Add Skill Category</button>
+      </div>
+
+      <!-- EDUCATION -->
+      <div class="panel" id="panel-education">
+        <div class="panel-title">Education</div>
+        <div class="panel-sub">Degrees, certifications, and courses.</div>
+        <div id="edu-list"></div>
+        <button class="btn-add" onclick="addEdu()">+ Add Education</button>
+      </div>
+
+      <!-- ACHIEVEMENTS -->
+      <div class="panel" id="panel-achievements">
+        <div class="panel-title">Achievements & Recognition</div>
+        <div class="panel-sub">Awards, publications, notable projects.</div>
+        <div id="achieve-list"></div>
+        <button class="btn-add" onclick="addAchieve()">+ Add Achievement</button>
+      </div>
+
+      <!-- CONTACT -->
+      <div class="panel" id="panel-contact">
+        <div class="panel-title">Contact Info</div>
+        <div class="panel-sub">Your contact details and contact section blurb.</div>
+        <div class="field">
+          <label>Section Blurb</label>
+          <textarea id="c-blurb" rows="2"></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="c-email" placeholder="you@email.com">
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input type="text" id="c-phone" placeholder="+62 812 3456 7890">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>LinkedIn URL</label>
+            <input type="url" id="c-linkedin" placeholder="https://linkedin.com/in/yourprofile">
+          </div>
+          <div class="field">
+            <label>GitHub URL</label>
+            <input type="url" id="c-github" placeholder="https://github.com/yourusername">
+          </div>
+        </div>
+        <div class="field">
+          <label>Footer Text</label>
+          <input type="text" id="c-footer" placeholder="© 2025 Your Name — ...">
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="panel" id="panel-settings">
+        <div class="panel-title">Security Settings</div>
+        <div class="panel-sub">Change your admin password.</div>
+        <div class="pwd-box">
+          <div class="pwd-box-title">🔒 Change Password</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Current Password</label>
+              <input type="password" id="pwd-current" placeholder="Current password">
+            </div>
+            <div class="field">
+              <label>New Password</label>
+              <input type="password" id="pwd-new" placeholder="New password (min 6 chars)">
+            </div>
+          </div>
+          <div class="field">
+            <label>Confirm New Password</label>
+            <input type="password" id="pwd-confirm" placeholder="Repeat new password" style="max-width:300px">
+          </div>
+          <button class="btn-save-all" onclick="changePassword()">Update Password</button>
+        </div>
+
+        <div class="danger-zone">
+          <div class="danger-zone-title">⚠ Danger Zone</div>
+          <p>This will delete all your CV content and reset everything to the default placeholder data. This cannot be undone.</p>
+          <button class="btn-danger" onclick="resetAll()">Reset All Content</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── DATA & AUTH ──────────────────────────────────────────────
+const DEFAULT = {
+  hero:{name:"Your Full Name",nameItalic:"Full",tag:"Open to opportunities",subtitle:"Senior [Your Title] with X+ years crafting solutions.",badge:"Available for work",photoUrl:"",cvUrl:""},
+  stats:[{num:"8+",label:"Years Experience"},{num:"32",label:"Projects Delivered"},{num:"5",label:"Companies"},{num:"12",label:"Awards Won"}],
+  experience:[{period:"2022 — Present",company:"Company Name",role:"Senior [Your Title]",desc:"Describe your key responsibilities and impact.",tags:["Key Skill 1","Key Skill 2"]},{period:"2019 — 2022",company:"Previous Company",role:"[Your Title]",desc:"Describe your achievements.",tags:["Skill A","Skill B"]}],
+  skills:[{icon:"⚙️",title:"Core Expertise",desc:"Your primary domain.",items:["Skill 1","Skill 2","Skill 3"]},{icon:"🛠️",title:"Tools & Platforms",desc:"Software and frameworks.",items:["Tool A","Tool B"]},{icon:"🤝",title:"Soft Skills",desc:"How you work with people.",items:["Leadership","Communication"]},{icon:"🌐",title:"Languages",desc:"Spoken languages.",items:["Bahasa Indonesia — Native","English — Fluent"]}],
+  education:[{degree:"Bachelor of [Your Field]",school:"University Name, City",period:"2012 — 2016",desc:"Thesis / specialization."},{degree:"Certification Name",school:"Issuing Organization",period:"2020",desc:"What this covers."}],
+  achievements:[{year:"2024",title:"Award Name",org:"Organization",desc:"Brief description."},{year:"2023",title:"Another Achievement",org:"Organization",desc:"What you accomplished."}],
+  contact:{blurb:"Whether you have a role in mind, a project to discuss, or just want to say hello — I'm always happy to chat.",email:"your@email.com",linkedin:"",github:"",phone:""},
+  footer:"© 2025 Your Name — Hosted free on GitHub Pages"
+};
+
+function getData(){try{return JSON.parse(localStorage.getItem('cv_data'))||JSON.parse(JSON.stringify(DEFAULT));}catch(e){return JSON.parse(JSON.stringify(DEFAULT));}}
+function setData(d){localStorage.setItem('cv_data',JSON.stringify(d));}
+function getPass(){return localStorage.getItem('cv_admin_pass')||'admin123';}
+function setPass(p){localStorage.setItem('cv_admin_pass',p);}
+
+// ── LOGIN ────────────────────────────────────────────────────
+function doLogin(){
+  const v=document.getElementById('pwd-input').value;
+  if(v===getPass()){
+    sessionStorage.setItem('cv_admin_ok','1');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    loadAll();
+  } else {
+    document.getElementById('login-err').style.display='block';
+    document.getElementById('pwd-input').value='';
+    document.getElementById('pwd-input').focus();
+  }
+}
+function logout(){sessionStorage.removeItem('cv_admin_ok');location.reload();}
+
+// Auto-login if session active
+if(sessionStorage.getItem('cv_admin_ok')==='1'){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.addEventListener('DOMContentLoaded',loadAll);
+}
+document.getElementById('pwd-input').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+// ── PANELS ───────────────────────────────────────────────────
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ── TOAST ────────────────────────────────────────────────────
+function toast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=(ok?'✓ ':'✗ ')+msg;
+  t.style.background=ok?'#2c3e50':'#c53030';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ── PHOTO ────────────────────────────────────────────────────
+function handlePhoto(input){
+  const file=input.files[0]; if(!file)return;
+  if(file.size>2*1024*1024){toast('Image too large. Max 2MB.',false);return;}
+  const r=new FileReader();
+  r.onload=e=>{
+    const url=e.target.result;
+    document.getElementById('photo-preview-img').src=url;
+    document.getElementById('photo-preview-img').style.display='block';
+    document.querySelector('.photo-upload-txt').style.display='none';
+    _photoUrl=url;
+  };
+  r.readAsDataURL(file);
+}
+let _photoUrl='';
+function clearPhoto(){
+  _photoUrl='CLEAR';
+  document.getElementById('photo-preview-img').style.display='none';
+  document.querySelector('.photo-upload-txt').style.display='block';
+  document.getElementById('photo-file').value='';
+}
+
+// ── TAGS INPUT ────────────────────────────────────────────────
+function makeTagsInput(containerId, initialTags){
+  const wrap=document.getElementById(containerId);
+  wrap.innerHTML='';
+  let tags=[...initialTags];
+
+  function refresh(){
+    wrap.innerHTML='';
+    tags.forEach((tag,i)=>{
+      const pill=document.createElement('span');
+      pill.className='tag-pill';
+      pill.innerHTML=`${tag}<button type="button" onclick="this.closest('.tag-pill').remove();updateTags('${containerId}')">×</button>`;
+      wrap.appendChild(pill);
+    });
+    const inp=document.createElement('input');
+    inp.className='tags-input';
+    inp.placeholder=tags.length?'':'Add skills, press Enter';
+    inp.onkeydown=e=>{
+      if((e.key==='Enter'||e.key===',')&&inp.value.trim()){
+        e.preventDefault();
+        tags.push(inp.value.trim().replace(/,$/,''));
+        refresh();
+      } else if(e.key==='Backspace'&&!inp.value&&tags.length){
+        tags.pop();refresh();
+      }
+    };
+    wrap.appendChild(inp);
+    wrap.onclick=()=>inp.focus();
+  }
+  refresh();
+}
+function getTagsFromInput(containerId){
+  const wrap=document.getElementById(containerId);
+  return [...wrap.querySelectorAll('.tag-pill')].map(p=>p.textContent.replace('×','').trim());
+}
+function updateTags(id){} // pills self-manage
+
+// ── STATS ─────────────────────────────────────────────────────
+function renderStats(stats){
+  const el=document.getElementById('stats-list');
+  el.innerHTML='';
+  stats.forEach((s,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="stat-card-${i}">
+      <div class="item-card-header">
+        <span class="item-card-title">Stat #${i+1}</span>
+        <button class="btn-remove" onclick="removeStat(${i})">Remove</button>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Number / Value</label><input type="text" id="stat-num-${i}" value="${s.num}" placeholder="e.g. 8+"></div>
+        <div class="field"><label>Label</label><input type="text" id="stat-label-${i}" value="${s.label}" placeholder="e.g. Years Experience"></div>
+      </div>
+    </div>`);
+  });
+}
+function addStat(){const d=getData();d.stats.push({num:'0',label:'New Stat'});setData(d);renderStats(d.stats);}
+function removeStat(i){const d=getData();d.stats.splice(i,1);setData(d);renderStats(d.stats);}
+function collectStats(){
+  const cards=document.querySelectorAll('[id^="stat-card-"]');
+  return [...cards].map(c=>{
+    const i=c.id.split('-').pop();
+    return{num:document.getElementById('stat-num-'+i).value,label:document.getElementById('stat-label-'+i).value};
+  });
+}
+
+// ── EXPERIENCE ────────────────────────────────────────────────
+function renderExp(exps){
+  const el=document.getElementById('exp-list');
+  el.innerHTML='';
+  exps.forEach((e,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="exp-card-${i}">
+      <div class="item-card-header">
+        <span class="item-card-title">${e.company||'New Experience'}</span>
+        <button class="btn-remove" onclick="removeExp(${i})">Remove</button>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Period</label><input type="text" id="exp-period-${i}" value="${e.period}" placeholder="2022 — Present"></div>
+        <div class="field"><label>Company</label><input type="text" id="exp-company-${i}" value="${e.company}" placeholder="Company Name"></div>
+      </div>
+      <div class="field"><label>Role / Title</label><input type="text" id="exp-role-${i}" value="${e.role}" placeholder="Senior Developer"></div>
+      <div class="field"><label>Description</label><textarea id="exp-desc-${i}" rows="3">${e.desc}</textarea></div>
+      <div class="field"><label>Skill Tags <span style="font-weight:300;text-transform:none;">(press Enter to add)</span></label>
+        <div class="tags-input-wrap" id="exp-tags-${i}"></div>
+      </div>
+    </div>`);
+    makeTagsInput('exp-tags-'+i, e.tags||[]);
+  });
+}
+function addExp(){const d=getData();d.experience.push({period:'',company:'New Company',role:'',desc:'',tags:[]});setData(d);renderExp(d.experience);}
+function removeExp(i){const d=getData();d.experience.splice(i,1);setData(d);renderExp(d.experience);}
+function collectExp(){
+  const cards=document.querySelectorAll('[id^="exp-card-"]');
+  return [...cards].map(c=>{
+    const i=c.id.split('-').pop();
+    return{period:document.getElementById('exp-period-'+i).value,company:document.getElementById('exp-company-'+i).value,role:document.getElementById('exp-role-'+i).value,desc:document.getElementById('exp-desc-'+i).value,tags:getTagsFromInput('exp-tags-'+i)};
+  });
+}
+
+// ── SKILLS ────────────────────────────────────────────────────
+function renderSkills(skills){
+  const el=document.getElementById('skills-list');
+  el.innerHTML='';
+  skills.forEach((s,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="skill-card-${i}">
+      <div class="item-card-header">
+        <span class="item-card-title">${s.title||'New Category'}</span>
+        <button class="btn-remove" onclick="removeSkill(${i})">Remove</button>
+      </div>
+      <div class="field-row-3">
+        <div class="field"><label>Icon (emoji)</label><input type="text" id="skill-icon-${i}" value="${s.icon}" placeholder="⚙️"></div>
+        <div class="field" style="grid-column:span 2"><label>Category Title</label><input type="text" id="skill-title-${i}" value="${s.title}" placeholder="Core Expertise"></div>
+      </div>
+      <div class="field"><label>Description</label><input type="text" id="skill-desc-${i}" value="${s.desc}" placeholder="Short description"></div>
+      <div class="field"><label>Skills <span style="font-weight:300;text-transform:none;">(press Enter to add)</span></label>
+        <div class="tags-input-wrap" id="skill-items-${i}"></div>
+      </div>
+    </div>`);
+    makeTagsInput('skill-items-'+i, s.items||[]);
+  });
+}
+function addSkill(){const d=getData();d.skills.push({icon:'⭐',title:'New Category',desc:'',items:[]});setData(d);renderSkills(d.skills);}
+function removeSkill(i){const d=getData();d.skills.splice(i,1);setData(d);renderSkills(d.skills);}
+function collectSkills(){
+  const cards=document.querySelectorAll('[id^="skill-card-"]');
+  return [...cards].map(c=>{
+    const i=c.id.split('-').pop();
+    return{icon:document.getElementById('skill-icon-'+i).value,title:document.getElementById('skill-title-'+i).value,desc:document.getElementById('skill-desc-'+i).value,items:getTagsFromInput('skill-items-'+i)};
+  });
+}
+
+// ── EDUCATION ─────────────────────────────────────────────────
+function renderEdu(edu){
+  const el=document.getElementById('edu-list');
+  el.innerHTML='';
+  edu.forEach((e,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="edu-card-${i}">
+      <div class="item-card-header">
+        <span class="item-card-title">${e.degree||'New Entry'}</span>
+        <button class="btn-remove" onclick="removeEdu(${i})">Remove</button>
+      </div>
+      <div class="field"><label>Degree / Certification</label><input type="text" id="edu-degree-${i}" value="${e.degree}" placeholder="Bachelor of Computer Science"></div>
+      <div class="field-row">
+        <div class="field"><label>School / Organization</label><input type="text" id="edu-school-${i}" value="${e.school}" placeholder="University Name, City"></div>
+        <div class="field"><label>Period</label><input type="text" id="edu-period-${i}" value="${e.period}" placeholder="2012 — 2016"></div>
+      </div>
+      <div class="field"><label>Description</label><textarea id="edu-desc-${i}" rows="2">${e.desc}</textarea></div>
+    </div>`);
+  });
+}
+function addEdu(){const d=getData();d.education.push({degree:'',school:'',period:'',desc:''});setData(d);renderEdu(d.education);}
+function removeEdu(i){const d=getData();d.education.splice(i,1);setData(d);renderEdu(d.education);}
+function collectEdu(){
+  const cards=document.querySelectorAll('[id^="edu-card-"]');
+  return [...cards].map(c=>{
+    const i=c.id.split('-').pop();
+    return{degree:document.getElementById('edu-degree-'+i).value,school:document.getElementById('edu-school-'+i).value,period:document.getElementById('edu-period-'+i).value,desc:document.getElementById('edu-desc-'+i).value};
+  });
+}
+
+// ── ACHIEVEMENTS ──────────────────────────────────────────────
+function renderAchieve(items){
+  const el=document.getElementById('achieve-list');
+  el.innerHTML='';
+  items.forEach((a,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="achieve-card-${i}">
+      <div class="item-card-header">
+        <span class="item-card-title">${a.title||'New Achievement'}</span>
+        <button class="btn-remove" onclick="removeAchieve(${i})">Remove</button>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Year</label><input type="text" id="achieve-year-${i}" value="${a.year}" placeholder="2024"></div>
+        <div class="field"><label>Organization</label><input type="text" id="achieve-org-${i}" value="${a.org}" placeholder="Company / Awarding Body"></div>
+      </div>
+      <div class="field"><label>Achievement Title</label><input type="text" id="achieve-title-${i}" value="${a.title}" placeholder="Award or Recognition Name"></div>
+      <div class="field"><label>Description</label><textarea id="achieve-desc-${i}" rows="2">${a.desc}</textarea></div>
+    </div>`);
+  });
+}
+function addAchieve(){const d=getData();d.achievements.push({year:'2025',title:'',org:'',desc:''});setData(d);renderAchieve(d.achievements);}
+function removeAchieve(i){const d=getData();d.achievements.splice(i,1);setData(d);renderAchieve(d.achievements);}
+function collectAchieve(){
+  const cards=document.querySelectorAll('[id^="achieve-card-"]');
+  return [...cards].map(c=>{
+    const i=c.id.split('-').pop();
+    return{year:document.getElementById('achieve-year-'+i).value,org:document.getElementById('achieve-org-'+i).value,title:document.getElementById('achieve-title-'+i).value,desc:document.getElementById('achieve-desc-'+i).value};
+  });
+}
+
+// ── LOAD ALL ──────────────────────────────────────────────────
+function loadAll(){
+  const d=getData();
+  const h=d.hero;
+  document.getElementById('h-name').value=h.name||'';
+  document.getElementById('h-italic').value=h.nameItalic||'';
+  document.getElementById('h-tag').value=h.tag||'';
+  document.getElementById('h-subtitle').value=h.subtitle||'';
+  document.getElementById('h-badge').value=h.badge||'';
+  document.getElementById('h-cv').value=h.cvUrl||'';
+  _photoUrl=h.photoUrl||'';
+  if(h.photoUrl){
+    document.getElementById('photo-preview-img').src=h.photoUrl;
+    document.getElementById('photo-preview-img').style.display='block';
+    document.querySelector('.photo-upload-txt').style.display='none';
+  }
+  renderStats(d.stats||[]);
+  renderExp(d.experience||[]);
+  renderSkills(d.skills||[]);
+  renderEdu(d.education||[]);
+  renderAchieve(d.achievements||[]);
+  const c=d.contact||{};
+  document.getElementById('c-blurb').value=c.blurb||'';
+  document.getElementById('c-email').value=c.email||'';
+  document.getElementById('c-phone').value=c.phone||'';
+  document.getElementById('c-linkedin').value=c.linkedin||'';
+  document.getElementById('c-github').value=c.github||'';
+  document.getElementById('c-footer').value=d.footer||'';
+}
+
+// ── SAVE ALL ──────────────────────────────────────────────────
+function saveAll(){
+  const d=getData();
+  d.hero={
+    name:document.getElementById('h-name').value,
+    nameItalic:document.getElementById('h-italic').value,
+    tag:document.getElementById('h-tag').value,
+    subtitle:document.getElementById('h-subtitle').value,
+    badge:document.getElementById('h-badge').value,
+    cvUrl:document.getElementById('h-cv').value,
+    photoUrl:_photoUrl==='CLEAR'?'':(_photoUrl||d.hero.photoUrl||'')
+  };
+  d.stats=collectStats();
+  d.experience=collectExp();
+  d.skills=collectSkills();
+  d.education=collectEdu();
+  d.achievements=collectAchieve();
+  d.contact={
+    blurb:document.getElementById('c-blurb').value,
+    email:document.getElementById('c-email').value,
+    phone:document.getElementById('c-phone').value,
+    linkedin:document.getElementById('c-linkedin').value,
+    github:document.getElementById('c-github').value
+  };
+  d.footer=document.getElementById('c-footer').value;
+  setData(d);
+  toast('All changes saved!');
+}
+
+// ── PASSWORD ──────────────────────────────────────────────────
+function changePassword(){
+  const cur=document.getElementById('pwd-current').value;
+  const nw=document.getElementById('pwd-new').value;
+  const cf=document.getElementById('pwd-confirm').value;
+  if(cur!==getPass()){toast('Current password is wrong.',false);return;}
+  if(nw.length<6){toast('New password must be at least 6 characters.',false);return;}
+  if(nw!==cf){toast('Passwords do not match.',false);return;}
+  setPass(nw);
+  document.getElementById('pwd-current').value='';
+  document.getElementById('pwd-new').value='';
+  document.getElementById('pwd-confirm').value='';
+  toast('Password updated!');
+}
+
+function resetAll(){
+  if(!confirm('Reset ALL content to defaults? This cannot be undone.'))return;
+  localStorage.removeItem('cv_data');
+  loadAll();
+  toast('Content reset to defaults.');
+}
+
+// Init
+if(sessionStorage.getItem('cv_admin_ok')==='1') loadAll();
+</script>
+</body>
+</html>
