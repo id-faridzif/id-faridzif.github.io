@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Admin — Remote CMS with Chunking</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1e2a38;--ink-m:#4a5568;--ink-f:#8898aa;
+  --bg:#f4f6f9;--card:#fff;--border:#dce3ec;
+  --accent:#2b7fd4;--accent-d:#1a5fa8;--accent-l:#ddeeff;
+  --dark:#2c3e50;--danger:#e53e3e;--danger-l:#fff5f5;
+  --success:#38a169;--success-l:#f0fff4;
+}
+body{font-family:'DM Sans',sans-serif;font-weight:400;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.6}
+
+/* LOGIN */
+#login-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:var(--dark);
+}
+.login-box{
+  background:#fff;border-radius:8px;padding:2.5rem;width:360px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.3);
+}
+.login-logo{font-size:1.1rem;font-weight:500;color:var(--accent);margin-bottom:0.4rem;}
+.login-title{font-size:1.4rem;font-weight:500;color:var(--ink);margin-bottom:0.5rem;}
+.login-sub{font-size:0.85rem;color:var(--ink-m);margin-bottom:2rem;}
+.login-box label{font-size:0.8rem;font-weight:500;color:var(--ink-m);letter-spacing:0.05em;text-transform:uppercase;display:block;margin-bottom:0.4rem;}
+.login-box input[type=password]{
+  width:100%;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:4px;
+  font-family:inherit;font-size:0.95rem;color:var(--ink);outline:none;margin-bottom:1rem;
+  transition:border-color 0.2s;
+}
+.login-box input[type=password]:focus{border-color:var(--accent);}
+.login-err{font-size:0.82rem;color:var(--danger);margin-bottom:0.75rem;display:none;}
+.btn-login{
+  width:100%;padding:0.8rem;background:var(--accent);color:#fff;border:none;
+  border-radius:4px;font-family:inherit;font-size:0.9rem;font-weight:500;
+  cursor:pointer;transition:background 0.2s;
+}
+.btn-login:hover{background:var(--accent-d);}
+.login-hint{font-size:0.75rem;color:var(--ink-f);text-align:center;margin-top:1rem;}
+
+/* MAIN LAYOUT */
+#app{display:none;min-height:100vh;}
+
+header{
+  background:var(--dark);color:#fff;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:1rem 2rem;position:sticky;top:0;z-index:100;
+}
+.header-left{display:flex;align-items:center;gap:1rem;}
+.header-logo{font-size:0.95rem;font-weight:500;color:rgba(255,255,255,0.9);}
+.header-badge{
+  background:var(--accent);color:#fff;font-size:0.68rem;font-weight:500;
+  padding:0.2rem 0.6rem;border-radius:2px;letter-spacing:0.05em;text-transform:uppercase;
+}
+.header-right{display:flex;gap:0.75rem;align-items:center;}
+.btn-preview{
+  background:transparent;color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.2);
+  padding:0.45rem 1rem;border-radius:4px;font-family:inherit;font-size:0.82rem;
+  cursor:pointer;text-decoration:none;transition:all 0.2s;
+}
+.btn-preview:hover{background:rgba(255,255,255,0.1);color:#fff;}
+.btn-save-all{
+  background:var(--accent);color:#fff;border:none;
+  padding:0.5rem 1.25rem;border-radius:4px;font-family:inherit;font-size:0.82rem;font-weight:500;
+  cursor:pointer;transition:background 0.2s;
+}
+.btn-save-all:hover{background:var(--accent-d);}
+.btn-logout{
+  background:transparent;color:rgba(255,255,255,0.5);border:none;
+  font-family:inherit;font-size:0.82rem;cursor:pointer;padding:0.45rem 0.75rem;
+  border-radius:4px;transition:color 0.2s;
+}
+.btn-logout:hover{color:#fff;}
+
+.cms-body{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px);}
+
+/* SIDEBAR */
+.sidebar{background:#fff;border-right:1px solid var(--border);padding:1.5rem 0;}
+.sidebar-section{
+  font-size:0.7rem;font-weight:500;color:var(--ink-f);letter-spacing:0.1em;
+  text-transform:uppercase;padding:0.5rem 1.5rem;margin-top:1rem;
+}
+.sidebar-item{
+  display:flex;align-items:center;gap:0.6rem;
+  padding:0.6rem 1.5rem;cursor:pointer;font-size:0.88rem;color:var(--ink-m);
+  border-left:3px solid transparent;transition:all 0.15s;
+}
+.sidebar-item:hover{background:var(--bg);color:var(--ink);}
+.sidebar-item.active{background:var(--accent-l);color:var(--accent);border-left-color:var(--accent);font-weight:500;}
+.sidebar-icon{font-size:1rem;width:20px;text-align:center;}
+
+/* PANELS */
+.panel{display:none;padding:2rem;max-width:860px;}
+.panel.active{display:block;}
+.panel-title{font-size:1.25rem;font-weight:500;color:var(--ink);margin-bottom:0.3rem;}
+.panel-sub{font-size:0.85rem;color:var(--ink-m);margin-bottom:2rem;}
+
+/* FORMS */
+.field{margin-bottom:1.25rem;}
+.field label{display:block;font-size:0.78rem;font-weight:500;color:var(--ink-m);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.4rem;}
+.field input,.field textarea,.field select{
+  width:100%;padding:0.65rem 0.9rem;border:1px solid var(--border);border-radius:4px;
+  font-family:inherit;font-size:0.9rem;color:var(--ink);outline:none;
+  transition:border-color 0.2s;background:#fff;
+}
+.field input:focus,.field textarea:focus{border-color:var(--accent);}
+.field textarea{resize:vertical;min-height:80px;}
+.field-hint{font-size:0.75rem;color:var(--ink-f);margin-top:0.3rem;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+
+/* REPEATABLE CARDS */
+.item-card{
+  background:#fff;border:1px solid var(--border);border-radius:6px;
+  padding:1.25rem;margin-bottom:1rem;position:relative;
+}
+.item-card-header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);
+}
+.item-card-title{font-size:0.88rem;font-weight:500;color:var(--ink);}
+.btn-remove{
+  background:var(--danger-l);color:var(--danger);border:1px solid #fed7d7;
+  padding:0.25rem 0.6rem;border-radius:3px;font-size:0.75rem;font-family:inherit;
+  cursor:pointer;transition:background 0.2s;
+}
+.btn-remove:hover{background:#fed7d7;}
+.btn-add{
+  display:flex;align-items:center;gap:0.5rem;
+  background:var(--accent-l);color:var(--accent);border:1px solid #b3d7f5;
+  padding:0.5rem 1rem;border-radius:4px;font-size:0.82rem;font-family:inherit;font-weight:500;
+  cursor:pointer;margin-top:0.5rem;transition:background 0.2s;
+}
+.btn-add:hover{background:#c5e3fa;}
+
+/* TAGS INPUT */
+.tags-input-wrap{
+  display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;
+  border:1px solid var(--border);border-radius:4px;padding:0.4rem 0.6rem;
+  background:#fff;min-height:40px;cursor:text;transition:border-color 0.2s;
+}
+.tags-input-wrap:focus-within{border-color:var(--accent);}
+.tag-pill{
+  background:var(--accent-l);color:var(--accent-d);font-size:0.75rem;
+  padding:0.15rem 0.5rem;border-radius:2px;display:flex;align-items:center;gap:0.3rem;
+}
+.tag-pill button{background:none;border:none;color:inherit;cursor:pointer;padding:0;font-size:0.9rem;line-height:1;}
+.tags-input{border:none;outline:none;font-family:inherit;font-size:0.85rem;color:var(--ink);flex:1;min-width:80px;padding:0.1rem;}
+
+/* PHOTO UPLOAD */
+.photo-upload-area{
+  border:2px dashed var(--border);border-radius:6px;padding:2rem;text-align:center;
+  cursor:pointer;transition:border-color 0.2s;margin-bottom:0.5rem;
+}
+.photo-upload-area:hover{border-color:var(--accent);}
+.photo-preview{max-width:180px;max-height:220px;border-radius:4px;margin:0.75rem auto;display:block;object-fit:cover;}
+.photo-upload-txt{font-size:0.85rem;color:var(--ink-m);}
+.photo-upload-txt strong{color:var(--accent);}
+
+/* PASSWORD & DANGER ZONE */
+.pwd-box{
+  background:var(--accent-l);border:1px solid #b3d7f5;border-radius:6px;
+  padding:1.25rem;margin-bottom:1.5rem;
+}
+.pwd-box-title{font-size:0.9rem;font-weight:500;color:var(--accent-d);margin-bottom:0.75rem;}
+.danger-zone{
+  background:var(--danger-l);border:1px solid #fed7d7;border-radius:6px;
+  padding:1.25rem;margin-top:2rem;
+}
+.danger-zone-title{font-size:0.88rem;font-weight:500;color:var(--danger);margin-bottom:0.4rem;}
+.danger-zone p{font-size:0.82rem;color:#742a2a;margin-bottom:0.75rem;}
+.btn-danger{
+  background:var(--danger);color:#fff;border:none;padding:0.5rem 1rem;
+  border-radius:4px;font-family:inherit;font-size:0.82rem;font-weight:500;cursor:pointer;
+}
+.btn-danger:hover{background:#c53030;}
+
+/* JSONBin config area */
+.jsonbin-box{
+  background:#f8fafc;border:1px solid var(--border);border-radius:6px;
+  padding:1.25rem;margin-bottom:1.5rem;
+}
+.jsonbin-box-title{font-size:0.9rem;font-weight:600;color:var(--ink);margin-bottom:0.5rem;}
+.jsonbin-hint{font-size:0.75rem;color:var(--ink-f);margin-bottom:1rem;}
+.btn-secondary{
+  background:var(--bg);color:var(--ink);border:1px solid var(--border);
+  padding:0.4rem 0.9rem;border-radius:4px;font-size:0.8rem;cursor:pointer;
+}
+.btn-secondary:hover{background:var(--border);}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:2rem;right:2rem;z-index:9999;
+  background:var(--dark);color:#fff;padding:0.75rem 1.25rem;
+  border-radius:6px;font-size:0.85rem;opacity:0;
+  transition:opacity 0.3s;pointer-events:none;
+  display:flex;align-items:center;gap:0.5rem;
+}
+#toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">⚙ CV Editor</div>
+    <h1 class="login-title">Admin Login</h1>
+    <p class="login-sub">Enter your password to edit your CV content.</p>
+    <label for="pwd-input">Password</label>
+    <input type="password" id="pwd-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-err" id="login-err">Incorrect password. Try again.</div>
+    <button class="btn-login" onclick="doLogin()">Sign In →</button>
+    <p class="login-hint">Default password: <strong>admin123</strong> — change it after first login</p>
+  </div>
+</div>
+
+<!-- MAIN ADMIN APP -->
+<div id="app">
+  <header>
+    <div class="header-left">
+      <span class="header-logo">CV Admin (JSONBin with Chunking)</span>
+      <span class="header-badge">Remote CMS</span>
+    </div>
+    <div class="header-right">
+      <a href="index.html" target="_blank" class="btn-preview">↗ Preview Site</a>
+      <button class="btn-save-all" onclick="saveAll()">💾 Save All</button>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="cms-body">
+    <nav class="sidebar">
+      <div class="sidebar-section">Content</div>
+      <div class="sidebar-item active" onclick="showPanel('hero')"><span class="sidebar-icon">👤</span> Hero</div>
+      <div class="sidebar-item" onclick="showPanel('stats')"><span class="sidebar-icon">📊</span> Stats</div>
+      <div class="sidebar-item" onclick="showPanel('experience')"><span class="sidebar-icon">💼</span> Experience</div>
+      <div class="sidebar-item" onclick="showPanel('projects')"><span class="sidebar-icon">🚀</span> Projects</div>
+      <div class="sidebar-item" onclick="showPanel('skills')"><span class="sidebar-icon">⚡</span> Skills</div>
+      <div class="sidebar-item" onclick="showPanel('education')"><span class="sidebar-icon">🎓</span> Education</div>
+      <div class="sidebar-item" onclick="showPanel('achievements')"><span class="sidebar-icon">🏆</span> Achievements</div>
+      <div class="sidebar-item" onclick="showPanel('contact')"><span class="sidebar-icon">✉</span> Contact</div>
+      <div class="sidebar-section">Settings</div>
+      <div class="sidebar-item" onclick="showPanel('settings')"><span class="sidebar-icon">🔒</span> Security & JSONBin</div>
+    </nav>
+
+    <main style="background:var(--bg);padding:1.5rem;overflow-y:auto;">
+
+      <!-- HERO PANEL -->
+      <div class="panel active" id="panel-hero">
+        <div class="panel-title">Hero Section</div>
+        <div class="panel-sub">The first thing visitors see — your name, title, and photo.</div>
+        <div style="display:grid;grid-template-columns:1fr 220px;gap:2rem;align-items:start;">
+          <div>
+            <div class="field"><label>Full Name</label><input type="text" id="h-name"></div>
+            <div class="field"><label>Italic Word in Name</label><input type="text" id="h-italic" placeholder="e.g. Ibrahim — becomes italic & blue"></div>
+            <div class="field"><label>Status Tag</label><input type="text" id="h-tag"></div>
+            <div class="field"><label>Subtitle / Tagline</label><textarea id="h-subtitle" rows="3"></textarea></div>
+            <div class="field"><label>Photo Badge Text</label><input type="text" id="h-badge"></div>
+            <div class="field"><label>CV Download URL</label><input type="text" id="h-cv" placeholder="https://..."></div>
+          </div>
+          <div>
+            <div class="field"><label>Profile Photo</label>
+              <div class="photo-upload-area" onclick="document.getElementById('photo-file').click()">
+                <img id="photo-preview-img" class="photo-preview" style="display:none">
+                <div class="photo-upload-txt"><strong>Click to upload</strong><br>JPG, PNG, WEBP</div>
+              </div>
+              <input type="file" id="photo-file" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+              <button class="btn-remove" style="width:100%" onclick="clearPhoto()">Remove Photo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS PANEL -->
+      <div class="panel" id="panel-stats">
+        <div class="panel-title">Stats Strip</div>
+        <div class="panel-sub">The 4 highlight numbers shown on the dark banner.</div>
+        <div id="stats-list"></div>
+        <button class="btn-add" onclick="addStat()">+ Add Stat</button>
+      </div>
+
+      <!-- EXPERIENCE PANEL -->
+      <div class="panel" id="panel-experience">
+        <div class="panel-title">Work Experience</div>
+        <div id="exp-list"></div>
+        <button class="btn-add" onclick="addExp()">+ Add Experience</button>
+      </div>
+
+      <!-- PROJECTS PANEL -->
+      <div class="panel" id="panel-projects">
+        <div class="panel-title">Projects & Technology</div>
+        <div class="panel-sub">Technical projects you've worked on — at your company or personally. Each card shows name, company, period, your role, status, description, and tech stack.</div>
+        <div id="projects-list"></div>
+        <button class="btn-add" onclick="addProject()">+ Add Project</button>
+      </div>
+
+      <!-- SKILLS PANEL -->
+      <div class="panel" id="panel-skills">
+        <div class="panel-title">Skills & Expertise</div>
+        <div id="skills-list"></div>
+        <button class="btn-add" onclick="addSkill()">+ Add Skill Category</button>
+      </div>
+
+      <!-- EDUCATION PANEL -->
+      <div class="panel" id="panel-education">
+        <div class="panel-title">Education</div>
+        <div id="edu-list"></div>
+        <button class="btn-add" onclick="addEdu()">+ Add Education</button>
+      </div>
+
+      <!-- ACHIEVEMENTS PANEL -->
+      <div class="panel" id="panel-achievements">
+        <div class="panel-title">Achievements & Recognition</div>
+        <div id="achieve-list"></div>
+        <button class="btn-add" onclick="addAchieve()">+ Add Achievement</button>
+      </div>
+
+      <!-- CONTACT PANEL -->
+      <div class="panel" id="panel-contact">
+        <div class="panel-title">Contact Info</div>
+        <div class="field"><label>Section Blurb</label><textarea id="c-blurb" rows="2"></textarea></div>
+        <div class="field-row">
+          <div class="field"><label>Email</label><input type="email" id="c-email"></div>
+          <div class="field"><label>Phone</label><input type="text" id="c-phone"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>LinkedIn URL</label><input type="url" id="c-linkedin"></div>
+          <div class="field"><label>GitHub URL</label><input type="url" id="c-github"></div>
+        </div>
+        <div class="field"><label>Footer Text</label><input type="text" id="c-footer"></div>
+      </div>
+
+      <!-- SECURITY & JSONBIN SETTINGS -->
+      <div class="panel" id="panel-settings">
+        <div class="panel-title">Security & JSONBin Configuration</div>
+        <div class="panel-sub">Change your admin password and connect to JSONBin for remote storage (with automatic chunking).</div>
+
+        <!-- JSONBin config box -->
+        <div class="jsonbin-box">
+          <div class="jsonbin-box-title">☁️ JSONBin Remote Storage (Auto Chunking)</div>
+          <div class="jsonbin-hint">Get your Bin ID and Master Key from <a href="https://jsonbin.io" target="_blank">jsonbin.io</a>. The main bin will store the index; additional chunk bins will be created automatically.</div>
+          <div class="field-row">
+            <div class="field"><label>Main Bin ID</label><input type="text" id="jsonbin-id" placeholder="e.g. 5f9c3f0b9f1e1e1e1e1e1e1e"></div>
+            <div class="field"><label>API Key (X-Master-Key)</label><input type="text" id="jsonbin-key" placeholder="$2b$10$..."></div>
+          </div>
+          <div style="display:flex;gap:0.75rem;margin-top:0.5rem;flex-wrap:wrap;">
+            <button class="btn-secondary" onclick="testJsonBin()">🔌 Test Connection</button>
+            <button class="btn-secondary" onclick="fetchFromJsonBin()">📥 Fetch from JSONBin</button>
+            <button class="btn-secondary" onclick="pushToJsonBin()">📤 Push to JSONBin</button>
+            <button class="btn-secondary" onclick="saveConfigToLocal()">💾 Save Config</button>
+          </div>
+          <div class="field-hint" style="margin-top:0.75rem;">⚠️ Data is compressed and automatically chunked if needed (max 95KB per chunk). Your API key is stored only in your browser's localStorage.</div>
+        </div>
+
+        <!-- Password change box -->
+        <div class="pwd-box">
+          <div class="pwd-box-title">🔒 Change Admin Password</div>
+          <div class="field-row">
+            <div class="field"><label>Current Password</label><input type="password" id="pwd-current"></div>
+            <div class="field"><label>New Password</label><input type="password" id="pwd-new"></div>
+          </div>
+          <div class="field"><label>Confirm New Password</label><input type="password" id="pwd-confirm" style="max-width:300px"></div>
+          <button class="btn-save-all" onclick="changePassword()">Update Password</button>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="danger-zone">
+          <div class="danger-zone-title">⚠ Danger Zone</div>
+          <p>This will delete all your local CV content and reset it to the default placeholder data. Remote JSONBin data is NOT affected unless you push afterwards.</p>
+          <button class="btn-danger" onclick="resetAll()">Reset Local Content to Defaults</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ──────────────────────────────────────────────────────────────
+//  DEFAULT DATA STRUCTURE
+// ──────────────────────────────────────────────────────────────
+const DEFAULT = {
+  hero:{name:"Your Full Name",nameItalic:"Full",tag:"Open to opportunities",subtitle:"Senior [Your Title] with X+ years crafting solutions.",badge:"Available for work",photoUrl:"",cvUrl:""},
+  stats:[{num:"8+",label:"Years Experience"},{num:"32",label:"Projects Delivered"},{num:"5",label:"Companies"},{num:"12",label:"Awards Won"}],
+  experience:[{period:"2022 — Present",company:"Company Name",role:"Senior [Your Title]",desc:"Describe your key responsibilities and impact.",tags:["Key Skill 1","Key Skill 2"]},{period:"2019 — 2022",company:"Previous Company",role:"[Your Title]",desc:"Describe your achievements.",tags:["Skill A","Skill B"]}],
+  projects:[{name:"Project Alpha",company:"Company Name",period:"2023 — 2024",role:"Backend Developer",status:"live",desc:"Describe what the project does and your specific contribution to it.",tech:["Java","Spring Boot","PostgreSQL","Kubernetes"]},{name:"Internal Tool",company:"Company Name",period:"2022",role:"Full Stack Developer",status:"completed",desc:"An internal tool that improved team productivity.",tech:["React","Node.js","Docker"]}],
+  skills:[{icon:"⚙️",title:"Core Expertise",desc:"Your primary domain.",items:["Skill 1","Skill 2","Skill 3"]},{icon:"🛠️",title:"Tools & Platforms",desc:"Software and frameworks.",items:["Tool A","Tool B"]},{icon:"🤝",title:"Soft Skills",desc:"How you work with people.",items:["Leadership","Communication"]},{icon:"🌐",title:"Languages",desc:"Spoken languages.",items:["Bahasa Indonesia — Native","English — Fluent"]}],
+  education:[{degree:"Bachelor of [Your Field]",school:"University Name, City",period:"2012 — 2016",desc:"Thesis / specialization."},{degree:"Certification Name",school:"Issuing Organization",period:"2020",desc:"What this covers."}],
+  achievements:[{year:"2024",title:"Award Name",org:"Organization",desc:"Brief description."},{year:"2023",title:"Another Achievement",org:"Organization",desc:"What you accomplished."}],
+  contact:{blurb:"Whether you have a role in mind, a project to discuss, or just want to say hello — I'm always happy to chat.",email:"your@email.com",linkedin:"",github:"",phone:""},
+  footer:"© 2025 Your Name — Hosted free on GitHub Pages"
+};
+
+// ── LOCALSTORAGE HELPERS ─────────────────────────────────────
+function getLocalData(){ try{ return JSON.parse(localStorage.getItem('cv_data'))||JSON.parse(JSON.stringify(DEFAULT)); }catch(e){ return JSON.parse(JSON.stringify(DEFAULT)); } }
+function setLocalData(d){ localStorage.setItem('cv_data',JSON.stringify(d)); }
+function getPass(){ return localStorage.getItem('cv_admin_pass')||'admin123'; }
+function setPass(p){ localStorage.setItem('cv_admin_pass',p); }
+function getJsonBinConfig(){ try{ return JSON.parse(localStorage.getItem('cv_config'))||{binId:'',apiKey:''}; }catch(e){ return {binId:'',apiKey:''}; } }
+function setJsonBinConfig(cfg){ localStorage.setItem('cv_config',JSON.stringify(cfg)); }
+
+// ── LOGIN ────────────────────────────────────────────────────
+function doLogin(){
+  const v=document.getElementById('pwd-input').value;
+  if(v===getPass()){
+    sessionStorage.setItem('cv_admin_ok','1');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    loadAll();
+  } else {
+    document.getElementById('login-err').style.display='block';
+    document.getElementById('pwd-input').value='';
+    document.getElementById('pwd-input').focus();
+  }
+}
+function logout(){ sessionStorage.removeItem('cv_admin_ok'); location.reload(); }
+if(sessionStorage.getItem('cv_admin_ok')==='1'){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.addEventListener('DOMContentLoaded',loadAll);
+}
+
+// ── PANEL SWITCHING ──────────────────────────────────────────
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.querySelector(`.sidebar-item[onclick="showPanel('${name}')"]`).classList.add('active');
+}
+
+// ── TOAST NOTIFICATION ───────────────────────────────────────
+function toast(msg, isError=false){
+  const t=document.getElementById('toast');
+  t.textContent=(isError?'⚠️ ':'✓ ')+msg;
+  t.style.background=isError?'#c53030':'#2c3e50';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),4000);
+}
+
+// ── PHOTO HANDLING ───────────────────────────────────────────
+let _photoUrl='';
+function handlePhoto(input){
+  const file=input.files[0]; if(!file)return;
+  if(file.size>2*1024*1024){ toast('Image too large. Max 2MB.',true); return; }
+  const r=new FileReader();
+  r.onload=e=>{
+    const url=e.target.result;
+    document.getElementById('photo-preview-img').src=url;
+    document.getElementById('photo-preview-img').style.display='block';
+    document.querySelector('.photo-upload-txt').style.display='none';
+    _photoUrl=url;
+  };
+  r.readAsDataURL(file);
+}
+function clearPhoto(){
+  _photoUrl='CLEAR';
+  document.getElementById('photo-preview-img').style.display='none';
+  document.querySelector('.photo-upload-txt').style.display='block';
+  document.getElementById('photo-file').value='';
+}
+
+// ── TAGS INPUT (reusable) ────────────────────────────────────
+function makeTagsInput(containerId, initialTags){
+  const wrap=document.getElementById(containerId);
+  if(!wrap) return;
+  wrap.innerHTML='';
+  let tags=[...initialTags];
+  function refresh(){
+    wrap.innerHTML='';
+    tags.forEach((tag,i)=>{
+      const pill=document.createElement('span');
+      pill.className='tag-pill';
+      pill.innerHTML=`${tag}<button type="button" onclick="this.closest('.tag-pill').remove();updateTags('${containerId}')">×</button>`;
+      wrap.appendChild(pill);
+    });
+    const inp=document.createElement('input');
+    inp.className='tags-input';
+    inp.placeholder=tags.length?'':'Add tags, press Enter';
+    inp.onkeydown=e=>{
+      if((e.key==='Enter'||e.key===',')&&inp.value.trim()){
+        e.preventDefault();
+        tags.push(inp.value.trim().replace(/,$/,''));
+        refresh();
+      } else if(e.key==='Backspace'&&!inp.value&&tags.length){
+        tags.pop(); refresh();
+      }
+    };
+    wrap.appendChild(inp);
+    wrap.onclick=()=>inp.focus();
+  }
+  refresh();
+}
+function getTagsFromInput(containerId){
+  const wrap=document.getElementById(containerId);
+  if(!wrap) return [];
+  return [...wrap.querySelectorAll('.tag-pill')].map(p=>p.textContent.replace('×','').trim());
+}
+function updateTags(id){} // pills self-manage
+
+// ── STATS ────────────────────────────────────────────────────
+function renderStats(stats){
+  const el=document.getElementById('stats-list');
+  el.innerHTML='';
+  stats.forEach((s,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="stat-card-${i}">
+      <div class="item-card-header"><span>Stat #${i+1}</span><button class="btn-remove" onclick="removeStat(${i})">Remove</button></div>
+      <div class="field-row">
+        <div class="field"><label>Number</label><input type="text" id="stat-num-${i}" value="${s.num.replace(/"/g, '&quot;')}"></div>
+        <div class="field"><label>Label</label><input type="text" id="stat-label-${i}" value="${s.label.replace(/"/g, '&quot;')}"></div>
+      </div>
+    </div>`);
+  });
+}
+function addStat(){ const d=getLocalData(); d.stats.push({num:'0',label:'New Stat'}); setLocalData(d); renderStats(d.stats); }
+function removeStat(i){ const d=getLocalData(); d.stats.splice(i,1); setLocalData(d); renderStats(d.stats); }
+function collectStats(){
+  const cards=document.querySelectorAll('[id^="stat-card-"]');
+  return [...cards].map(c=>{
+    const i=c.id.split('-').pop();
+    return{num:document.getElementById('stat-num-'+i).value,label:document.getElementById('stat-label-'+i).value};
+  });
+}
+
+// ── EXPERIENCE ───────────────────────────────────────────────
+function renderExp(exps){
+  const el=document.getElementById('exp-list');
+  el.innerHTML='';
+  exps.forEach((e,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="exp-card-${i}">
+      <div class="item-card-header"><span>${escapeHtml(e.company)||'Experience'}</span><button class="btn-remove" onclick="removeExp(${i})">Remove</button></div>
+      <div class="field-row"><div class="field"><label>Period</label><input type="text" id="exp-period-${i}" value="${escapeHtml(e.period)}"></div><div class="field"><label>Company</label><input type="text" id="exp-company-${i}" value="${escapeHtml(e.company)}"></div></div>
+      <div class="field"><label>Role</label><input type="text" id="exp-role-${i}" value="${escapeHtml(e.role)}"></div>
+      <div class="field"><label>Description</label><textarea id="exp-desc-${i}" rows="3">${escapeHtml(e.desc)}</textarea></div>
+      <div class="field"><label>Skill Tags</label><div class="tags-input-wrap" id="exp-tags-${i}"></div></div>
+    </div>`);
+    makeTagsInput('exp-tags-'+i, e.tags||[]);
+  });
+}
+function addExp(){ const d=getLocalData(); d.experience.push({period:'',company:'New Company',role:'',desc:'',tags:[]}); setLocalData(d); renderExp(d.experience); }
+function removeExp(i){ const d=getLocalData(); d.experience.splice(i,1); setLocalData(d); renderExp(d.experience); }
+function collectExp(){
+  const cards=document.querySelectorAll('[id^="exp-card-"]');
+  return [...cards].map(c=>{
+    const i=c.id.split('-').pop();
+    return{period:document.getElementById('exp-period-'+i).value,company:document.getElementById('exp-company-'+i).value,role:document.getElementById('exp-role-'+i).value,desc:document.getElementById('exp-desc-'+i).value,tags:getTagsFromInput('exp-tags-'+i)};
+  });
+}
+
+// ── PROJECTS ─────────────────────────────────────────────────
+function renderProjects(projects){
+  const el=document.getElementById('projects-list');
+  el.innerHTML='';
+  (projects||[]).forEach((p,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="proj-card-${i}">
+      <div class="item-card-header"><span>${escapeHtml(p.name)||'Project'}</span><button class="btn-remove" onclick="removeProject(${i})">Remove</button></div>
+      <div class="field-row">
+        <div class="field"><label>Project Name</label><input type="text" id="proj-name-${i}" value="${escapeHtml(p.name)}"></div>
+        <div class="field"><label>Company / Context</label><input type="text" id="proj-company-${i}" value="${escapeHtml(p.company)}" placeholder="e.g. XL Axiata or Personal"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Period</label><input type="text" id="proj-period-${i}" value="${escapeHtml(p.period)}" placeholder="e.g. 2023 — 2024"></div>
+        <div class="field"><label>Your Role</label><input type="text" id="proj-role-${i}" value="${escapeHtml(p.role)}" placeholder="e.g. Backend Developer"></div>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="proj-status-${i}">
+          <option value="live"${p.status==='live'?' selected':''}>🟢 Live</option>
+          <option value="completed"${p.status==='completed'?' selected':''}>✅ Completed</option>
+          <option value="wip"${p.status==='wip'?' selected':''}>🚧 In Progress</option>
+        </select>
+      </div>
+      <div class="field"><label>Description</label><textarea id="proj-desc-${i}" rows="3">${escapeHtml(p.desc)}</textarea></div>
+      <div class="field"><label>Technologies Used</label><div class="tags-input-wrap" id="proj-tech-${i}"></div></div>
+    </div>`);
+    makeTagsInput('proj-tech-'+i, p.tech||[]);
+  });
+}
+function addProject(){ const d=getLocalData(); if(!d.projects)d.projects=[]; d.projects.push({name:'New Project',company:'',period:'',role:'',status:'completed',desc:'',tech:[]}); setLocalData(d); renderProjects(d.projects); }
+function removeProject(i){ const d=getLocalData(); d.projects.splice(i,1); setLocalData(d); renderProjects(d.projects); }
+function collectProjects(){
+  const cards=document.querySelectorAll('[id^="proj-card-"]');
+  return [...cards].map(c=>{
+    const i=c.id.split('-').pop();
+    return{name:document.getElementById('proj-name-'+i).value,company:document.getElementById('proj-company-'+i).value,period:document.getElementById('proj-period-'+i).value,role:document.getElementById('proj-role-'+i).value,status:document.getElementById('proj-status-'+i).value,desc:document.getElementById('proj-desc-'+i).value,tech:getTagsFromInput('proj-tech-'+i)};
+  });
+}
+
+// ── SKILLS ───────────────────────────────────────────────────
+function renderSkills(skills){
+  const el=document.getElementById('skills-list');
+  el.innerHTML='';
+  skills.forEach((s,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="skill-card-${i}">
+      <div class="item-card-header"><span>${escapeHtml(s.title)||'Skill'}</span><button class="btn-remove" onclick="removeSkill(${i})">Remove</button></div>
+      <div class="field-row-3"><div class="field"><label>Icon</label><input type="text" id="skill-icon-${i}" value="${escapeHtml(s.icon)}"></div><div class="field" style="grid-column:span 2"><label>Title</label><input type="text" id="skill-title-${i}" value="${escapeHtml(s.title)}"></div></div>
+      <div class="field"><label>Description</label><input type="text" id="skill-desc-${i}" value="${escapeHtml(s.desc)}"></div>
+      <div class="field"><label>Skills</label><div class="tags-input-wrap" id="skill-items-${i}"></div></div>
+    </div>`);
+    makeTagsInput('skill-items-'+i, s.items||[]);
+  });
+}
+function addSkill(){ const d=getLocalData(); d.skills.push({icon:'⭐',title:'New Category',desc:'',items:[]}); setLocalData(d); renderSkills(d.skills); }
+function removeSkill(i){ const d=getLocalData(); d.skills.splice(i,1); setLocalData(d); renderSkills(d.skills); }
+function collectSkills(){
+  const cards=document.querySelectorAll('[id^="skill-card-"]');
+  return [...cards].map(c=>{
+    const i=c.id.split('-').pop();
+    return{icon:document.getElementById('skill-icon-'+i).value,title:document.getElementById('skill-title-'+i).value,desc:document.getElementById('skill-desc-'+i).value,items:getTagsFromInput('skill-items-'+i)};
+  });
+}
+
+// ── EDUCATION ────────────────────────────────────────────────
+function renderEdu(edu){
+  const el=document.getElementById('edu-list');
+  el.innerHTML='';
+  edu.forEach((e,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="edu-card-${i}">
+      <div class="item-card-header"><span>${escapeHtml(e.degree)||'Education'}</span><button class="btn-remove" onclick="removeEdu(${i})">Remove</button></div>
+      <div class="field"><label>Degree</label><input type="text" id="edu-degree-${i}" value="${escapeHtml(e.degree)}"></div>
+      <div class="field-row"><div class="field"><label>School</label><input type="text" id="edu-school-${i}" value="${escapeHtml(e.school)}"></div><div class="field"><label>Period</label><input type="text" id="edu-period-${i}" value="${escapeHtml(e.period)}"></div></div>
+      <div class="field"><label>Description</label><textarea id="edu-desc-${i}" rows="2">${escapeHtml(e.desc)}</textarea></div>
+    </div>`);
+  });
+}
+function addEdu(){ const d=getLocalData(); d.education.push({degree:'',school:'',period:'',desc:''}); setLocalData(d); renderEdu(d.education); }
+function removeEdu(i){ const d=getLocalData(); d.education.splice(i,1); setLocalData(d); renderEdu(d.education); }
+function collectEdu(){
+  const cards=document.querySelectorAll('[id^="edu-card-"]');
+  return [...cards].map(c=>{
+    const i=c.id.split('-').pop();
+    return{degree:document.getElementById('edu-degree-'+i).value,school:document.getElementById('edu-school-'+i).value,period:document.getElementById('edu-period-'+i).value,desc:document.getElementById('edu-desc-'+i).value};
+  });
+}
+
+// ── ACHIEVEMENTS ─────────────────────────────────────────────
+function renderAchieve(items){
+  const el=document.getElementById('achieve-list');
+  el.innerHTML='';
+  items.forEach((a,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="achieve-card-${i}">
+      <div class="item-card-header"><span>${escapeHtml(a.title)||'Achievement'}</span><button class="btn-remove" onclick="removeAchieve(${i})">Remove</button></div>
+      <div class="field-row"><div class="field"><label>Year</label><input type="text" id="achieve-year-${i}" value="${escapeHtml(a.year)}"></div><div class="field"><label>Organization</label><input type="text" id="achieve-org-${i}" value="${escapeHtml(a.org)}"></div></div>
+      <div class="field"><label>Title</label><input type="text" id="achieve-title-${i}" value="${escapeHtml(a.title)}"></div>
+      <div class="field"><label>Description</label><textarea id="achieve-desc-${i}" rows="2">${escapeHtml(a.desc)}</textarea></div>
+    </div>`);
+  });
+}
+function addAchieve(){ const d=getLocalData(); d.achievements.push({year:'2025',title:'',org:'',desc:''}); setLocalData(d); renderAchieve(d.achievements); }
+function removeAchieve(i){ const d=getLocalData(); d.achievements.splice(i,1); setLocalData(d); renderAchieve(d.achievements); }
+function collectAchieve(){
+  const cards=document.querySelectorAll('[id^="achieve-card-"]');
+  return [...cards].map(c=>{
+    const i=c.id.split('-').pop();
+    return{year:document.getElementById('achieve-year-'+i).value,org:document.getElementById('achieve-org-'+i).value,title:document.getElementById('achieve-title-'+i).value,desc:document.getElementById('achieve-desc-'+i).value};
+  });
+}
+
+// Helper to escape HTML for safe insertion (including attributes)
+function escapeHtml(str) {
+  if(!str) return '';
+  return String(str).replace(/[&<>"']/g, function(m){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+  });
+}
+
+// ── LOAD DATA INTO EDITOR (from local storage) ───────────────
+function loadAll(){
+  const d=getLocalData();
+  const h=d.hero;
+  document.getElementById('h-name').value=h.name||'';
+  document.getElementById('h-italic').value=h.nameItalic||'';
+  document.getElementById('h-tag').value=h.tag||'';
+  document.getElementById('h-subtitle').value=h.subtitle||'';
+  document.getElementById('h-badge').value=h.badge||'';
+  document.getElementById('h-cv').value=h.cvUrl||'';
+  _photoUrl=h.photoUrl||'';
+  if(h.photoUrl){
+    document.getElementById('photo-preview-img').src=h.photoUrl;
+    document.getElementById('photo-preview-img').style.display='block';
+    document.querySelector('.photo-upload-txt').style.display='none';
+  } else {
+    document.getElementById('photo-preview-img').style.display='none';
+    document.querySelector('.photo-upload-txt').style.display='block';
+  }
+  renderStats(d.stats||[]);
+  renderExp(d.experience||[]);
+  renderProjects(d.projects||[]);
+  renderSkills(d.skills||[]);
+  renderEdu(d.education||[]);
+  renderAchieve(d.achievements||[]);
+  const c=d.contact||{};
+  document.getElementById('c-blurb').value=c.blurb||'';
+  document.getElementById('c-email').value=c.email||'';
+  document.getElementById('c-phone').value=c.phone||'';
+  document.getElementById('c-linkedin').value=c.linkedin||'';
+  document.getElementById('c-github').value=c.github||'';
+  document.getElementById('c-footer').value=d.footer||'';
+  // Load JSONBin config into UI
+  const cfg=getJsonBinConfig();
+  document.getElementById('jsonbin-id').value=cfg.binId||'';
+  document.getElementById('jsonbin-key').value=cfg.apiKey||'';
+}
+
+// ── SAVE FROM EDITOR TO LOCAL STORAGE ────────────────────────
+function collectAllData(){
+  const d=getLocalData(); // start from current local to preserve structure, then overwrite
+  d.hero={
+    name:document.getElementById('h-name').value,
+    nameItalic:document.getElementById('h-italic').value,
+    tag:document.getElementById('h-tag').value,
+    subtitle:document.getElementById('h-subtitle').value,
+    badge:document.getElementById('h-badge').value,
+    cvUrl:document.getElementById('h-cv').value,
+    photoUrl:_photoUrl==='CLEAR'?'':(_photoUrl||d.hero.photoUrl||'')
+  };
+  d.stats=collectStats();
+  d.experience=collectExp();
+  d.projects=collectProjects();
+  d.skills=collectSkills();
+  d.education=collectEdu();
+  d.achievements=collectAchieve();
+  d.contact={
+    blurb:document.getElementById('c-blurb').value,
+    email:document.getElementById('c-email').value,
+    phone:document.getElementById('c-phone').value,
+    linkedin:document.getElementById('c-linkedin').value,
+    github:document.getElementById('c-github').value
+  };
+  d.footer=document.getElementById('c-footer').value;
+  return d;
+}
+
+function saveAll(){
+  const data=collectAllData();
+  setLocalData(data);
+  toast('Saved to local storage.');
+  // Also push to JSONBin if configured (silent)
+  pushToJsonBin(true);
+}
+
+// ── JSONBIN API INTERACTION WITH CHUNKING ────────────────────
+function saveConfigToLocal(){
+  const binId=document.getElementById('jsonbin-id').value.trim();
+  const apiKey=document.getElementById('jsonbin-key').value.trim();
+  if(!binId || !apiKey){
+    toast('Please fill both Bin ID and API Key.',true);
+    return;
+  }
+  setJsonBinConfig({binId,apiKey});
+  toast('Configuration saved to localStorage.');
+}
+
+async function testJsonBin(){
+  const cfg=getJsonBinConfig();
+  if(!cfg.binId || !cfg.apiKey){
+    toast('No JSONBin config found. Save config first.',true);
+    return;
+  }
+  toast('Testing connection...');
+  try{
+    const res=await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}/latest`,{headers:{'X-Master-Key':cfg.apiKey}});
+    if(res.ok){
+      toast('Connection successful! Bin exists and key works.');
+    } else {
+      toast(`Error ${res.status}: ${res.statusText}`,true);
+    }
+  }catch(e){
+    toast(`Failed: ${e.message}`,true);
+  }
+}
+
+async function fetchFromJsonBin(){
+  const cfg=getJsonBinConfig();
+  if(!cfg.binId || !cfg.apiKey){
+    toast('No JSONBin config. Save config first.',true);
+    return;
+  }
+  toast('Fetching from JSONBin...');
+  try{
+    const data = await fetchJsonBinData(cfg.binId, cfg.apiKey);
+    if(data){
+      setLocalData(data);
+      loadAll();
+      toast('Data loaded from JSONBin into editor.');
+    } else {
+      toast('No valid data found in JSONBin.', true);
+    }
+  }catch(e){
+    toast(`Fetch failed: ${e.message}`,true);
+  }
+}
+
+async function fetchJsonBinData(binId, apiKey) {
+  const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+    headers: { 'X-Master-Key': apiKey }
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  let record = json.record;
+  if (record && record.__chunks__ && Array.isArray(record.__chunks__)) {
+    let fullCompressed = '';
+    for (const chunkBinId of record.__chunks__) {
+      const chunkRes = await fetch(`https://api.jsonbin.io/v3/b/${chunkBinId}/latest`, {
+        headers: { 'X-Master-Key': apiKey }
+      });
+      if (!chunkRes.ok) throw new Error(`Failed to fetch chunk ${chunkBinId}`);
+      const chunkJson = await chunkRes.json();
+      fullCompressed += chunkJson.record.chunkData;
+    }
+    const decompressed = LZString.decompressFromUTF16(fullCompressed);
+    return JSON.parse(decompressed);
+  } else if (record && record.__compressed__) {
+    const decompressed = LZString.decompressFromUTF16(record.data);
+    return JSON.parse(decompressed);
+  } else {
+    return record;
+  }
+}
+
+async function pushToJsonBin(silent=false){
+  const cfg=getJsonBinConfig();
+  if(!cfg.binId || !cfg.apiKey){
+    if(!silent) toast('No JSONBin config. Save config first.',true);
+    return false;
+  }
+  const data = collectAllData();
+  const jsonStr = JSON.stringify(data);
+  const compressed = LZString.compressToUTF16(jsonStr);
+  const CHUNK_SIZE = 95 * 1024; // 95KB per chunk (safe margin)
+  
+  if (compressed.length <= CHUNK_SIZE) {
+    // Single bin (compressed)
+    const payload = { __compressed__: true, data: compressed };
+    try {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': cfg.apiKey },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!silent) toast('Successfully pushed to JSONBin (single chunk).');
+      return true;
+    } catch(e) {
+      if (!silent) toast(`Push failed: ${e.message}`, true);
+      return false;
+    }
+  } else {
+    // Chunking needed
+    const chunks = [];
+    for (let i = 0; i < compressed.length; i += CHUNK_SIZE) {
+      chunks.push(compressed.slice(i, i + CHUNK_SIZE));
+    }
+    if (!silent) toast(`Splitting into ${chunks.length} chunks...`);
+    
+    // Create or update chunk bins
+    const chunkBinIds = [];
+    for (let idx = 0; idx < chunks.length; idx++) {
+      const chunkBinId = `${cfg.binId}_chunk_${idx}`;
+      const chunkPayload = { chunkData: chunks[idx] };
+      // Try to update existing chunk bin
+      let res = await fetch(`https://api.jsonbin.io/v3/b/${chunkBinId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': cfg.apiKey },
+        body: JSON.stringify(chunkPayload)
+      });
+      if (res.status === 404) {
+        // Create new bin
+        res = await fetch(`https://api.jsonbin.io/v3/b`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Master-Key': cfg.apiKey },
+          body: JSON.stringify(chunkPayload)
+        });
+        if (!res.ok) throw new Error(`Failed to create chunk bin ${chunkBinId}`);
+        const createJson = await res.json();
+        chunkBinIds.push(createJson.metadata.id);
+      } else if (res.ok) {
+        chunkBinIds.push(chunkBinId);
+      } else {
+        throw new Error(`Failed to update chunk bin ${chunkBinId}`);
+      }
+    }
+    
+    // Update main bin with chunk index
+    const indexPayload = { __chunks__: chunkBinIds };
+    const mainRes = await fetch(`https://api.jsonbin.io/v3/b/${cfg.binId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': cfg.apiKey },
+      body: JSON.stringify(indexPayload)
+    });
+    if (!mainRes.ok) throw new Error(`Failed to update main bin: ${mainRes.status}`);
+    if (!silent) toast(`Successfully pushed to JSONBin (${chunks.length} chunks).`);
+    return true;
+  }
+}
+
+// ── PASSWORD CHANGE ──────────────────────────────────────────
+function changePassword(){
+  const cur=document.getElementById('pwd-current').value;
+  const nw=document.getElementById('pwd-new').value;
+  const cf=document.getElementById('pwd-confirm').value;
+  if(cur!==getPass()){ toast('Current password is wrong.',true); return; }
+  if(nw.length<6){ toast('New password must be at least 6 characters.',true); return; }
+  if(nw!==cf){ toast('Passwords do not match.',true); return; }
+  setPass(nw);
+  document.getElementById('pwd-current').value='';
+  document.getElementById('pwd-new').value='';
+  document.getElementById('pwd-confirm').value='';
+  toast('Password updated!');
+}
+
+// ── RESET LOCAL CONTENT ──────────────────────────────────────
+function resetAll(){
+  if(!confirm('Reset ALL local content to default? This will NOT affect JSONBin unless you push afterwards.')) return;
+  localStorage.removeItem('cv_data');
+  loadAll();
+  toast('Local content reset to defaults.');
+}
+
+// initial load if already logged in
+if(sessionStorage.getItem('cv_admin_ok')==='1') loadAll();
+</script>
+</body>
+</html>
