@@ -76,17 +76,8 @@ body { font-family: 'DM Sans', sans-serif; font-weight: 400; background: var(--s
 /* ── MAIN CONTENT ── */
 .main { flex: 1; overflow-y: auto; }
 
-/* PRINT-ONLY HEADER (hidden normally, shown when printing) */
-.print-header {
-  display: none;
-  padding: 1.5rem 2rem 1rem;
-  border-bottom: 2px solid var(--accent-dark);
-  margin-bottom: 0;
-}
-.ph-top { display: flex; justify-content: space-between; align-items: flex-start; }
-.ph-name { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; }
-.ph-title { font-size: 0.82rem; color: var(--ink-muted); margin-top: 0.2rem; }
-.ph-contacts { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; font-size: 0.78rem; color: var(--ink-muted); }
+/* Compact print CV — hidden on screen, only shown when printing */
+#print-cv { display: none; }
 
 /* HERO */
 .hero-banner { padding: 3rem 3rem 2.5rem; border-bottom: 1px solid var(--border); background: var(--surface); position: relative; overflow: hidden; }
@@ -243,25 +234,72 @@ footer a { color: var(--accent); text-decoration: none; }
   .skills-grid, .edu-grid, .achieve-grid, .projects-grid { grid-template-columns: 1fr; }
 }
 
-/* PRINT STYLES */
+/* ── COMPACT PRINT LAYOUT ───────────────────────────────── */
 @media print {
-  #loading, .sidebar, .hero-banner, .hero-actions, .hero-deco,
-  .contact-strip, footer, .mobile-toggle { display: none !important; }
-  .cv-layout { display: block; }
-  .main { overflow: visible; }
-  .print-header { display: block !important; }
-  .ph-top { display: flex !important; }
-  .cv-section { padding: 1rem 1.5rem; break-inside: avoid; border-bottom: 1px solid #ddd; }
-  .exp-item, .project-card, .skill-card, .edu-card, .achieve-card { break-inside: avoid; page-break-inside: avoid; }
-  .exp-list::before { display: none; }
-  .exp-dot { display: none; }
-  .exp-list { padding-left: 0; }
-  body { font-size: 12px; color: #000; }
-  a { color: inherit !important; text-decoration: none; }
-  .fade-in { opacity: 1 !important; transform: none !important; }
-  .stats-bar { border-bottom: 1px solid #ddd; }
-  .project-card::before { height: 2px; }
-  @page { margin: 15mm 12mm; }
+  /* Hide everything except the compact CV div */
+  #loading, .cv-layout { display: none !important; }
+  #print-cv { display: block !important; }
+
+  @page { margin: 12mm 14mm; size: A4 portrait; }
+
+  body { font-family: 'DM Sans', Arial, sans-serif; font-size: 9.5pt; color: #111; line-height: 1.45; background: #fff; }
+
+  /* ── HEADER ── */
+  .pcv-header { margin-bottom: 7pt; padding-bottom: 5pt; border-bottom: 1.5pt solid #0369a1; }
+  .pcv-name { font-family: 'Syne', Arial, sans-serif; font-size: 20pt; font-weight: 800; color: #0f172a; letter-spacing: -0.5pt; line-height: 1.1; }
+  .pcv-subtitle { font-size: 8.5pt; color: #475569; margin: 2pt 0 3pt; }
+  .pcv-contacts { font-size: 8pt; color: #64748b; }
+  .pcv-contacts span + span::before { content: ' · '; color: #cbd5e1; }
+  .pcv-stats { display: flex; gap: 1.5em; margin-top: 4pt; padding-top: 4pt; border-top: 0.5pt solid #e2e8f0; }
+  .pcv-stat { font-size: 7.5pt; color: #475569; }
+  .pcv-stat strong { color: #0369a1; font-size: 9pt; }
+
+  /* ── SECTIONS ── */
+  .pcv-section { margin-bottom: 7pt; }
+  .pcv-section-title {
+    font-family: 'Syne', Arial, sans-serif;
+    font-size: 7pt; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #0369a1;
+    border-bottom: 0.5pt solid #bfdbfe;
+    padding-bottom: 1.5pt; margin-bottom: 4pt;
+  }
+
+  /* ── EXPERIENCE ── */
+  .pcv-exp { margin-bottom: 5pt; page-break-inside: avoid; }
+  .pcv-exp:last-child { margin-bottom: 0; }
+  .pcv-row { display: flex; justify-content: space-between; align-items: baseline; gap: 1em; }
+  .pcv-role { font-weight: 600; font-size: 9.5pt; color: #0f172a; }
+  .pcv-right { font-size: 8pt; color: #64748b; white-space: nowrap; flex-shrink: 0; }
+  .pcv-company { font-size: 8pt; color: #0369a1; font-weight: 500; margin: 1pt 0; }
+  .pcv-desc { font-size: 8.5pt; color: #374151; line-height: 1.4; margin-top: 1pt; }
+  .pcv-tags { font-size: 7.5pt; color: #64748b; margin-top: 2pt; font-style: italic; }
+
+  /* ── PROJECTS ── */
+  .pcv-proj { margin-bottom: 5pt; page-break-inside: avoid; }
+  .pcv-proj:last-child { margin-bottom: 0; }
+  .pcv-proj-role { font-size: 7.5pt; color: #0369a1; margin: 1pt 0; }
+  .pcv-status { font-size: 7pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .pcv-status-live { color: #15803d; }
+  .pcv-status-completed { color: #0369a1; }
+  .pcv-status-wip { color: #b45309; }
+
+  /* ── SKILLS — two column ── */
+  .pcv-skills { columns: 2; column-gap: 2em; margin-top: 1pt; }
+  .pcv-skill-row { font-size: 8.5pt; color: #374151; margin-bottom: 2.5pt; break-inside: avoid; line-height: 1.35; }
+  .pcv-skill-cat { font-weight: 600; color: #0f172a; }
+
+  /* ── BOTTOM TWO-COL (education + achievements) ── */
+  .pcv-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5em; }
+
+  /* ── EDUCATION ── */
+  .pcv-edu { margin-bottom: 4pt; page-break-inside: avoid; }
+  .pcv-edu-school { font-size: 8pt; color: #475569; margin: 1pt 0; }
+
+  /* ── ACHIEVEMENTS ── */
+  .pcv-achieve { display: flex; gap: 6pt; margin-bottom: 3pt; font-size: 8.5pt; page-break-inside: avoid; }
+  .pcv-achieve-year { font-weight: 700; color: #0369a1; flex-shrink: 0; width: 2.5em; }
+  .pcv-achieve-body { color: #374151; line-height: 1.35; }
 }
 </style>
 </head>
@@ -305,17 +343,6 @@ footer a { color: var(--accent); text-decoration: none; }
 
   <!-- ── MAIN ── -->
   <main class="main" id="main-content">
-
-    <!-- PRINT-ONLY HEADER (hidden on screen, appears in PDF/print) -->
-    <div class="print-header">
-      <div class="ph-top">
-        <div>
-          <div class="ph-name" id="ph-name"></div>
-          <div class="ph-title" id="ph-title"></div>
-        </div>
-        <div class="ph-contacts" id="ph-contacts"></div>
-      </div>
-    </div>
 
     <!-- HERO -->
     <div class="hero-banner" id="home">
@@ -429,8 +456,10 @@ function toggleMobileNav() {
 // ── PDF DOWNLOAD ───────────────────────────────────────────
 function downloadPDF() {
   const name = document.getElementById('hero-name').textContent || 'CV';
+  const prev = document.title;
   document.title = name + ' — CV';
   window.print();
+  document.title = prev;
 }
 
 // ── DATA LOADING ───────────────────────────────────────────
@@ -517,15 +546,6 @@ function render(d) {
   if (h.cvUrl) { cvBtn.href = h.cvUrl; cvBtn.style.display = 'inline-flex'; }
   else { cvBtn.style.display = 'none'; }
 
-  // Print-only header (shown when printing/PDF)
-  document.getElementById('ph-name').textContent = h.name || '';
-  document.getElementById('ph-title').textContent = h.subtitle || '';
-  const phContacts = [];
-  if (c.email) phContacts.push(c.email);
-  if (c.phone) phContacts.push(c.phone);
-  if (c.linkedin) phContacts.push(c.linkedin.replace('https://', ''));
-  document.getElementById('ph-contacts').innerHTML = phContacts.map(t => `<span>${escapeHtml(t)}</span>`).join('');
-
   // Stats
   document.getElementById('stats-container').innerHTML = (d.stats || []).map(s =>
     `<div class="stat fade-in">
@@ -610,7 +630,104 @@ function render(d) {
   if (c.phone)    sideLinks += `<a href="tel:${escapeHtml(c.phone)}" class="sidebar-contact-link"><div class="c-icon" aria-hidden="true">☎</div><span>${escapeHtml(c.phone)}</span></a>`;
   document.getElementById('sidebar-contacts').innerHTML = sideLinks;
 
+  buildPrintCV(d);
   initObservers();
+}
+
+// ── BUILD COMPACT PRINT CV ─────────────────────────────────
+function buildPrintCV(d) {
+  const h = d.hero || {};
+  const c = d.contact || {};
+  const statusLabel = { live: 'Live', completed: 'Done', wip: 'WIP' };
+
+  let html = '';
+
+  // ── Header ──
+  const contacts = [c.email, c.phone, c.linkedin && c.linkedin.replace('https://',''), c.github && c.github.replace('https://','')].filter(Boolean);
+  html += `<div class="pcv-header">
+    <div class="pcv-name">${escapeHtml(h.name || '')}</div>
+    <div class="pcv-subtitle">${escapeHtml(h.subtitle || '')}</div>
+    <div class="pcv-contacts">${contacts.map(t=>`<span>${escapeHtml(t)}</span>`).join('')}</div>
+    ${(d.stats||[]).length ? `<div class="pcv-stats">${d.stats.map(s=>`<span class="pcv-stat"><strong>${escapeHtml(s.num)}</strong> ${escapeHtml(s.label)}</span>`).join('')}</div>` : ''}
+  </div>`;
+
+  // ── Experience ──
+  if ((d.experience||[]).length) {
+    html += `<div class="pcv-section"><div class="pcv-section-title">Work Experience</div>`;
+    d.experience.forEach(e => {
+      html += `<div class="pcv-exp">
+        <div class="pcv-row">
+          <span class="pcv-role">${escapeHtml(e.role)}</span>
+          <span class="pcv-right">${escapeHtml(e.company)} · ${escapeHtml(e.period)}</span>
+        </div>
+        <div class="pcv-desc">${escapeHtml(e.desc)}</div>
+        ${(e.tags||[]).length ? `<div class="pcv-tags">${e.tags.map(t=>escapeHtml(t)).join(' · ')}</div>` : ''}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── Projects ──
+  if ((d.projects||[]).length) {
+    html += `<div class="pcv-section"><div class="pcv-section-title">Projects & Technology</div>`;
+    d.projects.forEach(p => {
+      const sl = statusLabel[p.status] || '';
+      const sc = p.status ? `pcv-status-${p.status}` : '';
+      html += `<div class="pcv-proj">
+        <div class="pcv-row">
+          <span class="pcv-role">${escapeHtml(p.name)}${sl ? ` <span class="pcv-status ${sc}">[${sl}]</span>` : ''}</span>
+          <span class="pcv-right">${escapeHtml(p.company)}${p.period ? ' · ' + escapeHtml(p.period) : ''}</span>
+        </div>
+        ${p.role ? `<div class="pcv-proj-role">${escapeHtml(p.role)}</div>` : ''}
+        <div class="pcv-desc">${escapeHtml(p.desc)}</div>
+        ${(p.tech||[]).length ? `<div class="pcv-tags">${p.tech.map(t=>escapeHtml(t)).join(' · ')}</div>` : ''}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── Skills — two-column ──
+  if ((d.skills||[]).length) {
+    html += `<div class="pcv-section"><div class="pcv-section-title">Skills</div><div class="pcv-skills">`;
+    d.skills.forEach(s => {
+      html += `<div class="pcv-skill-row"><span class="pcv-skill-cat">${escapeHtml(s.title)}:</span> ${escapeHtml((s.items||[]).join(', '))}</div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // ── Education + Achievements — side by side ──
+  const hasEdu = (d.education||[]).length;
+  const hasAch = (d.achievements||[]).length;
+  if (hasEdu || hasAch) {
+    html += `<div class="pcv-bottom">`;
+    if (hasEdu) {
+      html += `<div class="pcv-section"><div class="pcv-section-title">Education</div>`;
+      d.education.forEach(e => {
+        html += `<div class="pcv-edu">
+          <div class="pcv-row">
+            <span class="pcv-role">${escapeHtml(e.degree)}</span>
+            <span class="pcv-right">${escapeHtml(e.period)}</span>
+          </div>
+          <div class="pcv-edu-school">${escapeHtml(e.school)}</div>
+          ${e.desc ? `<div class="pcv-desc">${escapeHtml(e.desc)}</div>` : ''}
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    if (hasAch) {
+      html += `<div class="pcv-section"><div class="pcv-section-title">Achievements</div>`;
+      d.achievements.forEach(a => {
+        html += `<div class="pcv-achieve">
+          <span class="pcv-achieve-year">${escapeHtml(a.year)}</span>
+          <span class="pcv-achieve-body"><strong>${escapeHtml(a.title)}</strong> — ${escapeHtml(a.org)}${a.desc ? '. ' + escapeHtml(a.desc) : ''}</span>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+
+  document.getElementById('print-cv').innerHTML = html;
 }
 
 // ── OBSERVERS ──────────────────────────────────────────────
@@ -669,5 +786,9 @@ function sendMail() {
 
 loadData();
 </script>
+
+<!-- Compact print CV — populated by buildPrintCV(), invisible on screen -->
+<div id="print-cv"></div>
+
 </body>
 </html>
