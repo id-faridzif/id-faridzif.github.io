@@ -190,7 +190,7 @@ header{
 .jsonbin-box-title{font-size:0.9rem;font-weight:600;color:var(--ink);margin-bottom:0.5rem;}
 .jsonbin-hint{font-size:0.75rem;color:var(--ink-f);margin-bottom:1rem;}
 .btn-secondary{
-  background:var(--surface-alt);color:var(--ink);border:1px solid var(--border);
+  background:var(--bg);color:var(--ink);border:1px solid var(--border);
   padding:0.4rem 0.9rem;border-radius:4px;font-size:0.8rem;cursor:pointer;
 }
 .btn-secondary:hover{background:var(--border);}
@@ -621,8 +621,13 @@ function collectAchieve(){
   });
 }
 
-// Helper to escape HTML for safe insertion
-function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+// Helper to escape HTML for safe insertion (including attributes)
+function escapeHtml(str) {
+  if(!str) return '';
+  return String(str).replace(/[&<>"']/g, function(m){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+  });
+}
 
 // ── LOAD DATA INTO EDITOR (from local storage) ───────────────
 function loadAll(){
