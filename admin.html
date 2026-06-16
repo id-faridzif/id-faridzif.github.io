@@ -242,6 +242,7 @@ header{
       <div class="sidebar-item active" onclick="showPanel('hero')"><span class="sidebar-icon">👤</span> Hero</div>
       <div class="sidebar-item" onclick="showPanel('stats')"><span class="sidebar-icon">📊</span> Stats</div>
       <div class="sidebar-item" onclick="showPanel('experience')"><span class="sidebar-icon">💼</span> Experience</div>
+      <div class="sidebar-item" onclick="showPanel('projects')"><span class="sidebar-icon">🚀</span> Projects</div>
       <div class="sidebar-item" onclick="showPanel('skills')"><span class="sidebar-icon">⚡</span> Skills</div>
       <div class="sidebar-item" onclick="showPanel('education')"><span class="sidebar-icon">🎓</span> Education</div>
       <div class="sidebar-item" onclick="showPanel('achievements')"><span class="sidebar-icon">🏆</span> Achievements</div>
@@ -291,6 +292,14 @@ header{
         <div class="panel-title">Work Experience</div>
         <div id="exp-list"></div>
         <button class="btn-add" onclick="addExp()">+ Add Experience</button>
+      </div>
+
+      <!-- PROJECTS PANEL -->
+      <div class="panel" id="panel-projects">
+        <div class="panel-title">Projects & Technology</div>
+        <div class="panel-sub">Technical projects you've worked on — at your company or personally. Each card shows name, company, period, your role, status, description, and tech stack.</div>
+        <div id="projects-list"></div>
+        <button class="btn-add" onclick="addProject()">+ Add Project</button>
       </div>
 
       <!-- SKILLS PANEL -->
@@ -384,6 +393,7 @@ const DEFAULT = {
   hero:{name:"Your Full Name",nameItalic:"Full",tag:"Open to opportunities",subtitle:"Senior [Your Title] with X+ years crafting solutions.",badge:"Available for work",photoUrl:"",cvUrl:""},
   stats:[{num:"8+",label:"Years Experience"},{num:"32",label:"Projects Delivered"},{num:"5",label:"Companies"},{num:"12",label:"Awards Won"}],
   experience:[{period:"2022 — Present",company:"Company Name",role:"Senior [Your Title]",desc:"Describe your key responsibilities and impact.",tags:["Key Skill 1","Key Skill 2"]},{period:"2019 — 2022",company:"Previous Company",role:"[Your Title]",desc:"Describe your achievements.",tags:["Skill A","Skill B"]}],
+  projects:[{name:"Project Alpha",company:"Company Name",period:"2023 — 2024",role:"Backend Developer",status:"live",desc:"Describe what the project does and your specific contribution to it.",tech:["Java","Spring Boot","PostgreSQL","Kubernetes"]},{name:"Internal Tool",company:"Company Name",period:"2022",role:"Full Stack Developer",status:"completed",desc:"An internal tool that improved team productivity.",tech:["React","Node.js","Docker"]}],
   skills:[{icon:"⚙️",title:"Core Expertise",desc:"Your primary domain.",items:["Skill 1","Skill 2","Skill 3"]},{icon:"🛠️",title:"Tools & Platforms",desc:"Software and frameworks.",items:["Tool A","Tool B"]},{icon:"🤝",title:"Soft Skills",desc:"How you work with people.",items:["Leadership","Communication"]},{icon:"🌐",title:"Languages",desc:"Spoken languages.",items:["Bahasa Indonesia — Native","English — Fluent"]}],
   education:[{degree:"Bachelor of [Your Field]",school:"University Name, City",period:"2012 — 2016",desc:"Thesis / specialization."},{degree:"Certification Name",school:"Issuing Organization",period:"2020",desc:"What this covers."}],
   achievements:[{year:"2024",title:"Award Name",org:"Organization",desc:"Brief description."},{year:"2023",title:"Another Achievement",org:"Organization",desc:"What you accomplished."}],
@@ -548,6 +558,46 @@ function collectExp(){
   });
 }
 
+// ── PROJECTS ─────────────────────────────────────────────────
+function renderProjects(projects){
+  const el=document.getElementById('projects-list');
+  el.innerHTML='';
+  (projects||[]).forEach((p,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="proj-card-${i}">
+      <div class="item-card-header"><span>${escapeHtml(p.name)||'Project'}</span><button class="btn-remove" onclick="removeProject(${i})">Remove</button></div>
+      <div class="field-row">
+        <div class="field"><label>Project Name</label><input type="text" id="proj-name-${i}" value="${escapeHtml(p.name)}"></div>
+        <div class="field"><label>Company / Context</label><input type="text" id="proj-company-${i}" value="${escapeHtml(p.company)}" placeholder="e.g. XL Axiata or Personal"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Period</label><input type="text" id="proj-period-${i}" value="${escapeHtml(p.period)}" placeholder="e.g. 2023 — 2024"></div>
+        <div class="field"><label>Your Role</label><input type="text" id="proj-role-${i}" value="${escapeHtml(p.role)}" placeholder="e.g. Backend Developer"></div>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="proj-status-${i}">
+          <option value="live"${p.status==='live'?' selected':''}>🟢 Live</option>
+          <option value="completed"${p.status==='completed'?' selected':''}>✅ Completed</option>
+          <option value="wip"${p.status==='wip'?' selected':''}>🚧 In Progress</option>
+        </select>
+      </div>
+      <div class="field"><label>Description</label><textarea id="proj-desc-${i}" rows="3">${escapeHtml(p.desc)}</textarea></div>
+      <div class="field"><label>Technologies Used</label><div class="tags-input-wrap" id="proj-tech-${i}"></div></div>
+    </div>`);
+    makeTagsInput('proj-tech-'+i, p.tech||[]);
+  });
+}
+function addProject(){ const d=getLocalData(); if(!d.projects)d.projects=[]; d.projects.push({name:'New Project',company:'',period:'',role:'',status:'completed',desc:'',tech:[]}); setLocalData(d); renderProjects(d.projects); }
+function removeProject(i){ const d=getLocalData(); d.projects.splice(i,1); setLocalData(d); renderProjects(d.projects); }
+function collectProjects(){
+  const cards=document.querySelectorAll('[id^="proj-card-"]');
+  return [...cards].map(c=>{
+    const i=c.id.split('-').pop();
+    return{name:document.getElementById('proj-name-'+i).value,company:document.getElementById('proj-company-'+i).value,period:document.getElementById('proj-period-'+i).value,role:document.getElementById('proj-role-'+i).value,status:document.getElementById('proj-status-'+i).value,desc:document.getElementById('proj-desc-'+i).value,tech:getTagsFromInput('proj-tech-'+i)};
+  });
+}
+
 // ── SKILLS ───────────────────────────────────────────────────
 function renderSkills(skills){
   const el=document.getElementById('skills-list');
@@ -650,6 +700,7 @@ function loadAll(){
   }
   renderStats(d.stats||[]);
   renderExp(d.experience||[]);
+  renderProjects(d.projects||[]);
   renderSkills(d.skills||[]);
   renderEdu(d.education||[]);
   renderAchieve(d.achievements||[]);
@@ -680,6 +731,7 @@ function collectAllData(){
   };
   d.stats=collectStats();
   d.experience=collectExp();
+  d.projects=collectProjects();
   d.skills=collectSkills();
   d.education=collectEdu();
   d.achievements=collectAchieve();
