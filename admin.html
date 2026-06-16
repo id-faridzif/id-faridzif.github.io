@@ -351,6 +351,22 @@ header{
             <div class="field"><label>Main Bin ID</label><input type="text" id="jsonbin-id" placeholder="e.g. 5f9c3f0b9f1e1e1e1e1e1e1e"></div>
             <div class="field"><label>API Key (X-Master-Key)</label><input type="text" id="jsonbin-key" placeholder="$2b$10$..."></div>
           </div>
+          <!-- Public Bin ID helper -->
+          <div id="public-bin-reminder" style="background:#fff8e1;border:1px solid #ffe082;border-radius:4px;padding:0.9rem;margin-top:0.75rem;display:none;">
+            <div style="font-size:0.82rem;font-weight:600;color:#b45309;margin-bottom:0.4rem;">⚠️ Important — Update PUBLIC_BIN_ID in index.html</div>
+            <div style="font-size:0.8rem;color:#78350f;margin-bottom:0.5rem;">
+              Your live site reads content from a hardcoded <code>PUBLIC_BIN_ID</code> in <strong>index.html</strong>.
+              It must match your Bin ID below, otherwise the live site shows placeholder content and your photo won't appear.
+            </div>
+            <div style="font-size:0.78rem;color:#78350f;margin-bottom:0.5rem;">Your current Bin ID (copy this):</div>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              <code id="public-bin-display" style="background:#fff;border:1px solid #fcd34d;border-radius:3px;padding:0.3rem 0.6rem;font-size:0.85rem;flex:1;word-break:break-all;"></code>
+              <button class="btn-secondary" onclick="copyBinId()" style="flex-shrink:0">Copy</button>
+            </div>
+            <div style="font-size:0.75rem;color:#92400e;margin-top:0.5rem;">
+              Open <strong>index.html</strong> in a text editor, find <code>const PUBLIC_BIN_ID = "..."</code> and replace the value with your Bin ID, then push to GitHub.
+            </div>
+          </div>
           <div style="display:flex;gap:0.75rem;margin-top:0.5rem;flex-wrap:wrap;">
             <button class="btn-secondary" onclick="testJsonBin()">🔌 Test Connection</button>
             <button class="btn-secondary" onclick="fetchFromJsonBin()">📥 Fetch from JSONBin</button>
@@ -449,16 +465,38 @@ function toast(msg, isError=false){
 
 // ── PHOTO HANDLING ───────────────────────────────────────────
 let _photoUrl='';
+
+function compressImage(dataUrl, maxPx=400, quality=0.82){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      let {width:w,height:h}=img;
+      if(w>maxPx||h>maxPx){
+        const ratio=Math.min(maxPx/w,maxPx/h);
+        w=Math.round(w*ratio); h=Math.round(h*ratio);
+      }
+      const c=document.createElement('canvas');
+      c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg',quality));
+    };
+    img.src=dataUrl;
+  });
+}
+
 function handlePhoto(input){
   const file=input.files[0]; if(!file)return;
-  if(file.size>2*1024*1024){ toast('Image too large. Max 2MB.',true); return; }
+  if(file.size>8*1024*1024){ toast('Image too large. Max 8MB.',true); return; }
   const r=new FileReader();
-  r.onload=e=>{
-    const url=e.target.result;
-    document.getElementById('photo-preview-img').src=url;
+  r.onload=async e=>{
+    toast('Compressing image…');
+    const compressed=await compressImage(e.target.result);
+    const kb=Math.round(compressed.length*0.75/1024);
+    document.getElementById('photo-preview-img').src=compressed;
     document.getElementById('photo-preview-img').style.display='block';
     document.querySelector('.photo-upload-txt').style.display='none';
-    _photoUrl=url;
+    _photoUrl=compressed;
+    toast(`Photo ready (${kb} KB after compression)`);
   };
   r.readAsDataURL(file);
 }
@@ -715,6 +753,7 @@ function loadAll(){
   const cfg=getJsonBinConfig();
   document.getElementById('jsonbin-id').value=cfg.binId||'';
   document.getElementById('jsonbin-key').value=cfg.apiKey||'';
+  if(cfg.binId) showBinReminder(cfg.binId);
 }
 
 // ── SAVE FROM EDITOR TO LOCAL STORAGE ────────────────────────
@@ -764,6 +803,24 @@ function saveConfigToLocal(){
   }
   setJsonBinConfig({binId,apiKey});
   toast('Configuration saved to localStorage.');
+  showBinReminder(binId);
+}
+
+function showBinReminder(binId){
+  const box=document.getElementById('public-bin-reminder');
+  const display=document.getElementById('public-bin-display');
+  if(box && display && binId){
+    display.textContent=binId;
+    box.style.display='block';
+  }
+}
+
+function copyBinId(){
+  const binId=document.getElementById('public-bin-display').textContent;
+  navigator.clipboard.writeText(binId).then(()=>toast('Bin ID copied to clipboard!')).catch(()=>{
+    document.getElementById('public-bin-display').select?.();
+    toast('Copy manually: '+binId);
+  });
 }
 
 async function testJsonBin(){
