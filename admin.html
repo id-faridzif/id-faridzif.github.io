@@ -244,6 +244,8 @@ header{
       <div class="sidebar-item" onclick="showPanel('experience')"><span class="sidebar-icon">💼</span> Experience</div>
       <div class="sidebar-item" onclick="showPanel('projects')"><span class="sidebar-icon">🚀</span> Projects</div>
       <div class="sidebar-item" onclick="showPanel('skills')"><span class="sidebar-icon">⚡</span> Skills</div>
+      <div class="sidebar-item" onclick="showPanel('languages')"><span class="sidebar-icon">🌐</span> Languages</div>
+      <div class="sidebar-item" onclick="showPanel('certifications')"><span class="sidebar-icon">🏅</span> Certifications</div>
       <div class="sidebar-item" onclick="showPanel('education')"><span class="sidebar-icon">🎓</span> Education</div>
       <div class="sidebar-item" onclick="showPanel('achievements')"><span class="sidebar-icon">🏆</span> Achievements</div>
       <div class="sidebar-item" onclick="showPanel('contact')"><span class="sidebar-icon">✉</span> Contact</div>
@@ -307,6 +309,22 @@ header{
         <div class="panel-title">Skills & Expertise</div>
         <div id="skills-list"></div>
         <button class="btn-add" onclick="addSkill()">+ Add Skill Category</button>
+      </div>
+
+      <!-- LANGUAGES PANEL -->
+      <div class="panel" id="panel-languages">
+        <div class="panel-title">Languages</div>
+        <div class="panel-sub">Spoken languages with proficiency level.</div>
+        <div id="lang-list"></div>
+        <button class="btn-add" onclick="addLang()">+ Add Language</button>
+      </div>
+
+      <!-- CERTIFICATIONS PANEL -->
+      <div class="panel" id="panel-certifications">
+        <div class="panel-title">Certifications</div>
+        <div class="panel-sub">Professional certifications with optional credential ID and verification link.</div>
+        <div id="cert-list"></div>
+        <button class="btn-add" onclick="addCert()">+ Add Certification</button>
       </div>
 
       <!-- EDUCATION PANEL -->
@@ -412,6 +430,8 @@ const DEFAULT = {
   projects:[{name:"Project Alpha",company:"Company Name",period:"2023 — 2024",role:"Backend Developer",status:"live",desc:"Describe what the project does and your specific contribution to it.",tech:["Java","Spring Boot","PostgreSQL","Kubernetes"]},{name:"Internal Tool",company:"Company Name",period:"2022",role:"Full Stack Developer",status:"completed",desc:"An internal tool that improved team productivity.",tech:["React","Node.js","Docker"]}],
   skills:[{icon:"⚙️",title:"Core Expertise",desc:"Your primary domain.",items:["Skill 1","Skill 2","Skill 3"]},{icon:"🛠️",title:"Tools & Platforms",desc:"Software and frameworks.",items:["Tool A","Tool B"]},{icon:"🤝",title:"Soft Skills",desc:"How you work with people.",items:["Leadership","Communication"]},{icon:"🌐",title:"Languages",desc:"Spoken languages.",items:["Bahasa Indonesia — Native","English — Fluent"]}],
   education:[{degree:"Bachelor of [Your Field]",school:"University Name, City",period:"2012 — 2016",desc:"Thesis / specialization."},{degree:"Certification Name",school:"Issuing Organization",period:"2020",desc:"What this covers."}],
+  languages:[{name:"Bahasa Indonesia",level:"native"},{name:"English",level:"fluent"}],
+  certifications:[{name:"AWS Certified Solutions Architect",issuer:"Amazon Web Services",date:"Jan 2024",credentialId:"",verifyUrl:""}],
   achievements:[{year:"2024",title:"Award Name",org:"Organization",desc:"Brief description."},{year:"2023",title:"Another Achievement",org:"Organization",desc:"What you accomplished."}],
   contact:{blurb:"Whether you have a role in mind, a project to discuss, or just want to say hello — I'm always happy to chat.",email:"your@email.com",linkedin:"",github:"",phone:""},
   footer:"© 2025 Your Name — Hosted free on GitHub Pages"
@@ -685,6 +705,67 @@ function collectEdu(){
   });
 }
 
+// ── LANGUAGES ────────────────────────────────────────────────
+function renderLangs(langs){
+  const el=document.getElementById('lang-list');
+  el.innerHTML='';
+  (langs||[]).forEach((l,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="lang-card-${i}">
+      <div class="item-card-header"><span>${escapeHtml(l.name)||'Language'}</span><button class="btn-remove" onclick="removeLang(${i})">Remove</button></div>
+      <div class="field-row">
+        <div class="field"><label>Language</label><input type="text" id="lang-name-${i}" value="${escapeHtml(l.name)}"></div>
+        <div class="field"><label>Proficiency</label>
+          <select id="lang-level-${i}">
+            <option value="native"${l.level==='native'?' selected':''}>Native (5 dots)</option>
+            <option value="fluent"${l.level==='fluent'?' selected':''}>Fluent (4 dots)</option>
+            <option value="conversational"${l.level==='conversational'?' selected':''}>Conversational (3 dots)</option>
+            <option value="basic"${l.level==='basic'?' selected':''}>Basic (2 dots)</option>
+            <option value="elementary"${l.level==='elementary'?' selected':''}>Elementary (1 dot)</option>
+          </select>
+        </div>
+      </div>
+    </div>`);
+  });
+}
+function addLang(){ const d=getLocalData(); if(!d.languages)d.languages=[]; d.languages.push({name:'New Language',level:'fluent'}); setLocalData(d); renderLangs(d.languages); }
+function removeLang(i){ const d=getLocalData(); d.languages.splice(i,1); setLocalData(d); renderLangs(d.languages); }
+function collectLangs(){
+  return [...document.querySelectorAll('[id^="lang-card-"]')].map(c=>{
+    const i=c.id.split('-').pop();
+    return {name:document.getElementById('lang-name-'+i).value, level:document.getElementById('lang-level-'+i).value};
+  });
+}
+
+// ── CERTIFICATIONS ───────────────────────────────────────────
+function renderCerts(certs){
+  const el=document.getElementById('cert-list');
+  el.innerHTML='';
+  (certs||[]).forEach((c,i)=>{
+    el.insertAdjacentHTML('beforeend',`
+    <div class="item-card" id="cert-card-${i}">
+      <div class="item-card-header"><span>${escapeHtml(c.name)||'Certification'}</span><button class="btn-remove" onclick="removeCert(${i})">Remove</button></div>
+      <div class="field"><label>Certification Name</label><input type="text" id="cert-name-${i}" value="${escapeHtml(c.name)}"></div>
+      <div class="field-row">
+        <div class="field"><label>Issuing Organization</label><input type="text" id="cert-issuer-${i}" value="${escapeHtml(c.issuer)}"></div>
+        <div class="field"><label>Date / Year</label><input type="text" id="cert-date-${i}" value="${escapeHtml(c.date)}" placeholder="e.g. Jan 2024"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Credential ID (optional)</label><input type="text" id="cert-credid-${i}" value="${escapeHtml(c.credentialId)}"></div>
+        <div class="field"><label>Verify URL (optional)</label><input type="url" id="cert-verify-${i}" value="${escapeHtml(c.verifyUrl)}"></div>
+      </div>
+    </div>`);
+  });
+}
+function addCert(){ const d=getLocalData(); if(!d.certifications)d.certifications=[]; d.certifications.push({name:'New Certification',issuer:'',date:'',credentialId:'',verifyUrl:''}); setLocalData(d); renderCerts(d.certifications); }
+function removeCert(i){ const d=getLocalData(); d.certifications.splice(i,1); setLocalData(d); renderCerts(d.certifications); }
+function collectCerts(){
+  return [...document.querySelectorAll('[id^="cert-card-"]')].map(c=>{
+    const i=c.id.split('-').pop();
+    return {name:document.getElementById('cert-name-'+i).value, issuer:document.getElementById('cert-issuer-'+i).value, date:document.getElementById('cert-date-'+i).value, credentialId:document.getElementById('cert-credid-'+i).value, verifyUrl:document.getElementById('cert-verify-'+i).value};
+  });
+}
+
 // ── ACHIEVEMENTS ─────────────────────────────────────────────
 function renderAchieve(items){
   const el=document.getElementById('achieve-list');
@@ -741,6 +822,8 @@ function loadAll(){
   renderProjects(d.projects||[]);
   renderSkills(d.skills||[]);
   renderEdu(d.education||[]);
+  renderLangs(d.languages||[]);
+  renderCerts(d.certifications||[]);
   renderAchieve(d.achievements||[]);
   const c=d.contact||{};
   document.getElementById('c-blurb').value=c.blurb||'';
@@ -772,6 +855,8 @@ function collectAllData(){
   d.experience=collectExp();
   d.projects=collectProjects();
   d.skills=collectSkills();
+  d.languages=collectLangs();
+  d.certifications=collectCerts();
   d.education=collectEdu();
   d.achievements=collectAchieve();
   d.contact={
@@ -782,6 +867,7 @@ function collectAllData(){
     github:document.getElementById('c-github').value
   };
   d.footer=document.getElementById('c-footer').value;
+  d.meta={...(d.meta||{}), updatedAt:new Date().toISOString()};
   return d;
 }
 
